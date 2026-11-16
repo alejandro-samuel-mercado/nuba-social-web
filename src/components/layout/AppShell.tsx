@@ -27,6 +27,9 @@ import { WEB_THEMES, useTheme } from '@/providers/ThemeProvider';
 import { SacAvatar, SacBadge, SacButton } from '../ui/SacPrimitives';
 import { CommunityPulseSidebar } from './CommunityPulseSidebar';
 import { ContextualExplorerBar } from './ContextualExplorerBar';
+import { MobileTopBar } from './MobileTopBar';
+import { MobileBottomDock } from './MobileBottomDock';
+import { MobileMenuSheet } from './MobileMenuSheet';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -44,6 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { theme, setTheme } = useTheme();
   const [drawPhase, setDrawPhase] = useState<'SPIN' | 'DONE'>('SPIN');
   const [ticker, setTicker] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user && pathname !== '/login') {
@@ -229,47 +233,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* =========================================================================
-          MOBILE TOP BAR (< lg)
+          MOBILE TOP BAR (< lg) - Instagram / TikTok Style Top Bar & Stories Reel
           ========================================================================= */}
-      <header className="flex lg:hidden sticky top-0 z-40 items-center justify-between px-4 py-2.5 bg-[var(--theme-surface)]/95 backdrop-blur-md border-b border-[var(--theme-border)]">
-        <Link href="/feed" className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white flex items-center justify-center font-bold text-sm shadow-xs">
-            N
-          </div>
-          <span className="font-bold text-sm tracking-tight text-[var(--theme-dark)]">
-            {settings.appName || 'Nuba Club'}
-          </span>
-        </Link>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              const idx = WEB_THEMES.findIndex((t) => t.id === theme);
-              const next = WEB_THEMES[(idx + 1) % WEB_THEMES.length];
-              setTheme(next.id);
-            }}
-            className="p-1.5 rounded-full hover:bg-[var(--theme-surface-hover)] text-[var(--theme-dark)] cursor-pointer"
-            title="Cambiar tema"
-          >
-            <Palette className="h-4 w-4" />
-          </button>
-
-          <Link
-            href="/notifications"
-            className="relative p-1.5 rounded-full hover:bg-[var(--theme-surface-hover)] text-[var(--theme-dark)]"
-            title="Notificaciones"
-          >
-            <Bell className="h-5 w-5" />
-            {unreadNotifications > 0 ? (
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-600" />
-            ) : null}
-          </Link>
-
-          <Link href="/settings">
-            <SacAvatar src={user.avatarUrl} name={user.displayName} size={30} />
-          </Link>
-        </div>
-      </header>
+      <Suspense fallback={<div className="h-14 bg-[var(--theme-surface)] border-b border-[var(--theme-border)]" />}>
+        <MobileTopBar />
+      </Suspense>
 
       {/* =========================================================================
           TIER 3: CENTER STREAM + TIER 4: RIGHT COMMUNITY PULSE (Full Width Harmony)
@@ -294,45 +262,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* =========================================================================
-          MOBILE BOTTOM DOCK (< lg)
+          MOBILE BOTTOM DOCK (< lg) - Facebook Style 5-Tab Bar
           ========================================================================= */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around py-2 bg-[var(--theme-surface)]/95 backdrop-blur-md border-t border-[var(--theme-border)]">
-        {[
-          { href: '/feed', label: 'Avisos', icon: Home },
-          { href: '/chats', label: 'Chats', icon: MessageCircle },
-          { href: '/polls', label: 'Encuestas', icon: BarChart3 },
-          { href: '/giveaways', label: 'Sorteos', icon: Gift },
-          isStaff
-            ? { href: '/admin', label: 'Admin', icon: Shield }
-            : {
-                href: '/support',
-                label: 'Soporte',
-                icon: LifeBuoy,
-                badge: unreadDirectMessages,
-              },
-        ].map((item) => {
-          const Icon = item.icon;
-          const active = pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'relative flex flex-col items-center justify-center py-1 px-3 rounded-lg text-[10px] font-semibold transition-colors',
-                active
-                  ? 'text-[var(--theme-primary)] font-bold'
-                  : 'text-[var(--theme-muted)] hover:text-[var(--theme-dark)]'
-              )}
-            >
-              <Icon className="h-5 w-5 mb-0.5" />
-              <span>{item.label}</span>
-              {(item as any).badge && (item as any).badge > 0 ? (
-                <span className="absolute top-0 right-2 h-2 w-2 rounded-full bg-rose-600" />
-              ) : null}
-            </Link>
-          );
-        })}
-      </nav>
+      <MobileBottomDock onOpenMenu={() => setMobileMenuOpen(true)} />
+
+      {/* =========================================================================
+          MOBILE MENU SHEET (< lg) - Facebook Style Slide-Up Quick Access Menu
+          ========================================================================= */}
+      <MobileMenuSheet isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
 
       {/* =========================================================================
           LIVE DRAW MODAL
