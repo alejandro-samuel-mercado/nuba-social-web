@@ -1,30 +1,41 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   CheckCheck,
+  Filter,
   Flame,
   Gift,
   HelpCircle,
   MessageCircle,
   Radio,
+  RotateCcw,
   Search,
   Sparkles,
+  Tag,
   Trophy,
   Users,
+  X,
 } from 'lucide-react';
 import { api, resolveMediaUrl } from '@/lib/api';
 import { League, Post, RadarSummary, StandingRow, Team, TopicType } from '@/types/nuba';
 import { GlassCard, SacBadge, SacButton } from '@/components/ui/SacPrimitives';
 import { PostCardWeb } from '@/components/feed/PostCardWeb';
 
-export default function FeedPage() {
-  const [topic, setTopic] = useState<TopicType | 'ALL'>('ALL');
-  const [subType, setSubType] = useState<string>('ALL');
-  const [search, setSearch] = useState('');
-  const [footballTab, setFootballTab] = useState<'FEED' | 'STANDINGS' | 'TEAMS'>('FEED');
+function FeedContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
+  // URL-driven filter states (keeps ContextualExplorerBar and Feed 100% in sync)
+  const topic = (searchParams.get('topic') as TopicType | null) || 'ALL';
+  const subType = searchParams.get('subType') || 'ALL';
+  const tag = searchParams.get('tag') || '';
+  const footballTab = (searchParams.get('tab') as 'FEED' | 'STANDINGS' | 'TEAMS' | null) || 'FEED';
+  const search = searchParams.get('search') || searchParams.get('q') || '';
+
+  const [searchInput, setSearchInput] = useState(search);
   const [radar, setRadar] = useState<RadarSummary | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [leagues, setLeagues] = useState<League[]>([]);
@@ -32,6 +43,33 @@ export default function FeedPage() {
   const [standings, setStandings] = useState<StandingRow[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Sync searchInput when URL changes
+  useEffect(() => {
+    setSearchInput(search);
+  }, [search]);
+
+  // Helper to update URL query params
+  const setFilter = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(updates).forEach(([k, v]) => {
+        if (!v || v === 'ALL' || (k === 'tab' && v === 'FEED')) {
+          params.delete(k);
+        } else {
+          params.set(k, v);
+        }
+      });
+      // If topic changes, reset subType and tab
+      if ('topic' in updates && updates.topic !== searchParams.get('topic')) {
+        params.delete('subType');
+        params.delete('tab');
+      }
+      const qs = params.toString();
+      router.push(qs ? `/feed?${qs}` : '/feed');
+    },
+    [router, searchParams]
+  );
 
   const loadFeed = useCallback(async () => {
     setLoading(true);
@@ -42,6 +80,7 @@ export default function FeedPage() {
           params: {
             topic: topic === 'ALL' ? undefined : topic,
             subType: subType === 'ALL' ? undefined : subType,
+            tag: tag ? tag.toLowerCase() : undefined,
             search: search.trim() || undefined,
             limit: 30,
           },
@@ -52,7 +91,7 @@ export default function FeedPage() {
     } finally {
       setLoading(false);
     }
-  }, [topic, subType, search]);
+  }, [topic, subType, tag, search]);
 
   useEffect(() => {
     void loadFeed();
@@ -88,8 +127,15 @@ export default function FeedPage() {
     await loadFeed();
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFilter({ search: searchInput.trim() || null });
+  };
+
+  const hasActiveFilters = topic !== 'ALL' || subType !== 'ALL' || !!tag || footballTab !== 'FEED' || !!search;
+
   return (
-    <div className="space-y-5 max-w-3xl mx-auto xl:mx-0 xl:max-w-none">
+    <div className="space-y-4 max-w-3xl mx-auto xl:mx-0 xl:max-w-none">
       {/* =========================================================================
           AMBIENT RADAR STRIP: Live Pulse Status
           ========================================================================= */}
@@ -147,7 +193,7 @@ export default function FeedPage() {
       ) : null}
 
       {/* =========================================================================
-          TOP CATEGORY BAR: Pills + Search Box
+          TOP CATEGORY BAR: Topic Pills + Search Box
           ========================================================================= */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Topic Pills */}
@@ -166,21 +212,23 @@ export default function FeedPage() {
               <button
                 key={t.k}
                 onClick={() => {
-                  setTopic(t.k);
-                  setSubType('ALL');
-                  setFootballTab('FEED');
+                  setFilter({
+                    topic: t.k === 'ALL' ? null : t.k,
+                    subType: null,
+                    tab: null,
+                  });
                 }}
                 className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                   active
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'bg-[var(--theme-primary)] text-white shadow-xs'
+                    : 'bg-[var(--theme-surface)] text-[var(--theme-dark)] border border-[var(--theme-border)] hover:bg-[var(--theme-surface-hover)]'
                 }`}
               >
                 <span>{t.l}</span>
                 {t.c > 0 ? (
                   <span
                     className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                      active ? 'bg-white text-blue-700' : 'bg-rose-600 text-white'
+                      active ? 'bg-white text-[var(--theme-primary)]' : 'bg-rose-600 text-white'
                     }`}
                   >
                     {t.c}
@@ -192,22 +240,128 @@ export default function FeedPage() {
         </div>
 
         {/* Search Input */}
-        <div className="relative w-full sm:w-60 shrink-0">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-64 shrink-0">
+          <Search className="h-4 w-4 text-[var(--theme-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar avisos..."
-            className="w-full rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-3.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onBlur={() => {
+              if (searchInput !== search) {
+                setFilter({ search: searchInput.trim() || null });
+              }
+            }}
+            placeholder="Buscar por título, contenido o #etiqueta..."
+            className="w-full rounded-full border border-[var(--theme-border)] bg-[var(--theme-surface)] pl-9 pr-8 py-1.5 text-xs text-[var(--theme-dark)] placeholder:text-[var(--theme-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)]/20 focus:border-[var(--theme-primary)]"
           />
-        </div>
+          {searchInput ? (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchInput('');
+                setFilter({ search: null });
+              }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--theme-muted)] hover:text-[var(--theme-dark)] cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          ) : null}
+        </form>
       </div>
+
+      {/* =========================================================================
+          ACTIVE FILTERS CHIP BAR: Instant Visibility & 1-Click Clear
+          ========================================================================= */}
+      {hasActiveFilters && (
+        <div className="flex flex-wrap items-center gap-1.5 p-2.5 rounded-xl bg-[var(--theme-surface-hover)] border border-[var(--theme-border)] text-xs">
+          <span className="font-bold text-[var(--theme-dark)] flex items-center gap-1 mr-1">
+            <Filter className="h-3.5 w-3.5 text-[var(--theme-primary)]" />
+            <span>Filtros activos:</span>
+          </span>
+
+          {topic !== 'ALL' && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--theme-primary)] text-white text-xs font-semibold shadow-2xs">
+              <span>{topic === 'FOOTBALL' ? '⚽ Fútbol' : topic === 'STREAMING' ? '🎬 Streaming' : topic === 'TV_CHANNELS' ? '📺 TV' : '📢 Noticias'}</span>
+              <button
+                onClick={() => setFilter({ topic: null, subType: null, tab: null })}
+                className="hover:opacity-75 cursor-pointer ml-0.5"
+                title="Quitar categoría"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {subType !== 'ALL' && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--theme-surface)] border border-[var(--theme-border)] text-[var(--theme-dark)] text-xs font-semibold shadow-2xs">
+              <span>Subtipo: {subType}</span>
+              <button
+                onClick={() => setFilter({ subType: null })}
+                className="hover:opacity-75 cursor-pointer ml-0.5 text-[var(--theme-muted)] hover:text-rose-500"
+                title="Quitar subtipo"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {tag && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-xs font-semibold shadow-2xs">
+              <Tag className="h-3 w-3" />
+              <span>#{tag}</span>
+              <button
+                onClick={() => setFilter({ tag: null })}
+                className="hover:opacity-75 cursor-pointer ml-0.5"
+                title="Quitar etiqueta"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {footballTab !== 'FEED' && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-600 text-white text-xs font-semibold shadow-2xs">
+              <span>{footballTab === 'STANDINGS' ? '🏆 Tabla de Posiciones' : '🛡️ Equipos'}</span>
+              <button
+                onClick={() => setFilter({ tab: null })}
+                className="hover:opacity-75 cursor-pointer ml-0.5"
+                title="Volver al feed de partidos"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {search && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--theme-surface)] border border-[var(--theme-border)] text-[var(--theme-dark)] text-xs font-semibold shadow-2xs">
+              <span>&ldquo;{search}&rdquo;</span>
+              <button
+                onClick={() => {
+                  setSearchInput('');
+                  setFilter({ search: null });
+                }}
+                className="hover:opacity-75 cursor-pointer ml-0.5 text-[var(--theme-muted)] hover:text-rose-500"
+                title="Borrar búsqueda"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          <button
+            onClick={() => router.push('/feed')}
+            className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
+          >
+            <RotateCcw className="h-3 w-3" />
+            <span>Limpiar filtros</span>
+          </button>
+        </div>
+      )}
 
       {/* Sub-type Filters if Topic is Active */}
       {topic !== 'ALL' ? (
-        <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-xl bg-[var(--theme-surface-hover)] border border-[var(--theme-border)]">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-medium text-slate-500 mr-1">Filtrar:</span>
+            <span className="text-xs font-medium text-[var(--theme-muted)] mr-1">Filtrar:</span>
             {(topic === 'FOOTBALL'
               ? [
                   { k: 'ALL', l: 'Todo Fútbol' },
@@ -231,16 +385,16 @@ export default function FeedPage() {
                   { k: 'ALL', l: 'Todas' },
                   { k: 'PREMIUM', l: 'Premium' },
                   { k: 'DEMO', l: 'Demo' },
-                  { k: 'PROBLEM', l: 'Problemas' },
+                  { k: 'PROBLEM', l: 'Avisos' },
                 ]
             ).map((st) => (
               <button
                 key={st.k}
-                onClick={() => setSubType(st.k)}
+                onClick={() => setFilter({ subType: st.k === 'ALL' ? null : st.k })}
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${
                   subType === st.k
-                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                    ? 'bg-[var(--theme-dark)] text-[var(--theme-surface)]'
+                    : 'bg-[var(--theme-surface)] text-[var(--theme-muted)] border border-[var(--theme-border)] hover:text-[var(--theme-dark)] hover:bg-[var(--theme-surface-hover)]'
                 }`}
               >
                 {st.l}
@@ -250,10 +404,19 @@ export default function FeedPage() {
 
           <Link
             href={`/chats?topic=${topic}`}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-3 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--theme-primary)]/10 border border-[var(--theme-primary)]/30 px-3 py-1 text-xs font-semibold text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/20 transition-colors"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            <span>Chat de {topic === 'FOOTBALL' ? 'Fútbol' : topic === 'STREAMING' ? 'Streaming' : topic === 'TV_CHANNELS' ? 'Canales TV' : 'Noticias'}</span>
+            <span>
+              Chat de{' '}
+              {topic === 'FOOTBALL'
+                ? 'Fútbol'
+                : topic === 'STREAMING'
+                ? 'Streaming'
+                : topic === 'TV_CHANNELS'
+                ? 'Canales TV'
+                : 'Noticias'}
+            </span>
           </Link>
         </div>
       ) : null}
@@ -271,11 +434,11 @@ export default function FeedPage() {
             ).map((ft) => (
               <button
                 key={ft.k}
-                onClick={() => setFootballTab(ft.k)}
+                onClick={() => setFilter({ tab: ft.k === 'FEED' ? null : ft.k })}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                   footballTab === ft.k
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    ? 'bg-[var(--theme-primary)] text-white shadow-2xs'
+                    : 'bg-[var(--theme-surface)] text-[var(--theme-muted)] border border-[var(--theme-border)] hover:bg-[var(--theme-surface-hover)]'
                 }`}
               >
                 {ft.l}
@@ -287,7 +450,7 @@ export default function FeedPage() {
             <select
               value={selectedLeagueId}
               onChange={(e) => setSelectedLeagueId(e.target.value)}
-              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200"
+              className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 py-1.5 text-xs font-semibold text-[var(--theme-dark)]"
             >
               {leagues.map((lg) => (
                 <option key={lg.id} value={lg.id}>
@@ -303,13 +466,13 @@ export default function FeedPage() {
           CONTENT STREAM: Posts / Standings / Teams
           ========================================================================= */}
       {topic === 'FOOTBALL' && footballTab === 'STANDINGS' ? (
-        <GlassCard className="p-5 overflow-x-auto">
-          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+        <GlassCard className="p-5 overflow-x-auto bg-[var(--theme-surface)] border border-[var(--theme-border)]">
+          <h2 className="text-base font-bold text-[var(--theme-dark)] mb-3 flex items-center gap-2">
             <Trophy className="h-5 w-5 text-amber-500" /> Tabla de Posiciones
           </h2>
           <table className="w-full text-left text-xs sm:text-sm">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-500 font-semibold">
+              <tr className="border-b border-[var(--theme-border)] text-[var(--theme-muted)] font-semibold">
                 <th className="py-2.5 pr-2">#</th>
                 <th className="py-2.5">Equipo</th>
                 <th className="py-2.5 text-center">PJ</th>
@@ -320,10 +483,10 @@ export default function FeedPage() {
                 <th className="py-2.5 text-right">PTS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-[var(--theme-border)]">
               {standings.map((r, idx) => (
-                <tr key={r.id} className="font-medium text-slate-800 dark:text-slate-200">
-                  <td className="py-2.5 pr-2 font-bold text-slate-500">{r.position || idx + 1}</td>
+                <tr key={r.id} className="font-medium text-[var(--theme-dark)]">
+                  <td className="py-2.5 pr-2 font-bold text-[var(--theme-muted)]">{r.position || idx + 1}</td>
                   <td className="py-2.5 flex items-center gap-2.5">
                     <span
                       style={{ backgroundColor: r.team.colorPrimary, color: r.team.colorSecondary }}
@@ -337,14 +500,14 @@ export default function FeedPage() {
                     </span>
                     <span className="font-semibold">{r.team.name}</span>
                   </td>
-                  <td className="py-2.5 text-center text-slate-600 dark:text-slate-400">{r.played}</td>
-                  <td className="py-2.5 text-center text-slate-600 dark:text-slate-400">{r.won}</td>
-                  <td className="py-2.5 text-center text-slate-600 dark:text-slate-400">{r.drawn}</td>
-                  <td className="py-2.5 text-center text-slate-600 dark:text-slate-400">{r.lost}</td>
-                  <td className="py-2.5 text-center text-slate-600 dark:text-slate-400">
+                  <td className="py-2.5 text-center text-[var(--theme-muted)]">{r.played}</td>
+                  <td className="py-2.5 text-center text-[var(--theme-muted)]">{r.won}</td>
+                  <td className="py-2.5 text-center text-[var(--theme-muted)]">{r.drawn}</td>
+                  <td className="py-2.5 text-center text-[var(--theme-muted)]">{r.lost}</td>
+                  <td className="py-2.5 text-center text-[var(--theme-muted)]">
                     {r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}
                   </td>
-                  <td className="py-2.5 text-right font-bold text-blue-600 dark:text-blue-400">{r.points}</td>
+                  <td className="py-2.5 text-right font-bold text-[var(--theme-primary)]">{r.points}</td>
                 </tr>
               ))}
             </tbody>
@@ -353,7 +516,7 @@ export default function FeedPage() {
       ) : topic === 'FOOTBALL' && footballTab === 'TEAMS' ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {teams.map((t) => (
-            <GlassCard key={t.id} className="flex items-center gap-3 p-3.5">
+            <GlassCard key={t.id} className="flex items-center gap-3 p-3.5 bg-[var(--theme-surface)] border border-[var(--theme-border)]">
               <div
                 style={{ backgroundColor: t.colorPrimary, color: t.colorSecondary }}
                 className="h-11 w-11 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-2xs"
@@ -365,8 +528,8 @@ export default function FeedPage() {
                 )}
               </div>
               <div className="min-w-0">
-                <div className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">{t.name}</div>
-                <div className="text-xs text-slate-500 truncate">
+                <div className="font-bold text-sm text-[var(--theme-dark)] truncate">{t.name}</div>
+                <div className="text-xs text-[var(--theme-muted)] truncate">
                   {t.stadium || 'Estadio'} {t.city ? `• ${t.city}` : ''}
                 </div>
               </div>
@@ -374,26 +537,58 @@ export default function FeedPage() {
           ))}
         </div>
       ) : loading ? (
-        <GlassCard className="text-center py-12 text-sm text-slate-500 font-medium">
-          Cargando publicaciones...
+        <GlassCard className="text-center py-12 text-sm text-[var(--theme-muted)] font-medium bg-[var(--theme-surface)] border border-[var(--theme-border)]">
+          Cargando avisos...
         </GlassCard>
       ) : posts.length === 0 ? (
-        <GlassCard className="text-center py-12 space-y-2">
-          <Sparkles className="h-8 w-8 mx-auto text-slate-400" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-            No hay avisos en esta sección todavía.
-          </p>
-          <p className="text-xs text-slate-500">
-            Probá seleccionando otra categoría o limpiando la búsqueda.
-          </p>
+        <GlassCard className="text-center py-12 space-y-3 bg-[var(--theme-surface)] border border-[var(--theme-border)]">
+          <Sparkles className="h-8 w-8 mx-auto text-[var(--theme-muted)] opacity-60" />
+          <div className="space-y-1">
+            <p className="text-sm font-bold text-[var(--theme-dark)]">
+              No hay avisos que coincidan con los filtros seleccionados.
+            </p>
+            <p className="text-xs text-[var(--theme-muted)]">
+              Probá seleccionando otra categoría o limpiando los filtros actuales.
+            </p>
+          </div>
+          {hasActiveFilters && (
+            <button
+              onClick={() => router.push('/feed')}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[var(--theme-primary)] hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Restablecer Filtros</span>
+            </button>
+          )}
         </GlassCard>
       ) : (
         <div className="space-y-4">
           {posts.map((p) => (
-            <PostCardWeb key={p.id} post={p} onUpdated={() => void loadFeed()} />
+            <PostCardWeb
+              key={p.id}
+              post={p}
+              onUpdated={() => void loadFeed()}
+              onTagClick={(clickedTag) => {
+                setFilter({ tag: clickedTag });
+              }}
+            />
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+export default function FeedPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="text-center py-12 text-sm text-[var(--theme-muted)]">
+          Cargando comunidad...
+        </div>
+      }
+    >
+      <FeedContent />
+    </Suspense>
   );
 }

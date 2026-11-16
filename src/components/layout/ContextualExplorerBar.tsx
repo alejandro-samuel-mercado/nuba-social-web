@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -8,6 +8,7 @@ import {
   Bell,
   CheckCircle2,
   Film,
+  Filter,
   Flame,
   Gift,
   Hash,
@@ -17,15 +18,18 @@ import {
   MessageCircle,
   Palette,
   Radio,
+  RotateCcw,
   Search,
   Shield,
   Sparkles,
+  Tag,
   Trophy,
   Tv,
   User,
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { api } from '@/lib/api';
 import { useAuth } from '@/providers/AuthProvider';
 
 export function ContextualExplorerBar() {
@@ -33,10 +37,49 @@ export function ContextualExplorerBar() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { isStaff, settings } = useAuth();
+  const [popularTags, setPopularTags] = useState<{ tag: string; count: number }[]>([]);
+
+  const currentTopic = searchParams.get('topic') || 'ALL';
+  const currentSubType = searchParams.get('subType') || 'ALL';
+  const currentTag = searchParams.get('tag') || '';
+  const currentTab = searchParams.get('tab') || 'FEED';
+
+  useEffect(() => {
+    if (pathname.startsWith('/feed')) {
+      api
+        .get('/posts/tags', {
+          params: { topic: currentTopic !== 'ALL' ? currentTopic : undefined },
+        })
+        .then(({ data }) => {
+          if (Array.isArray(data.tags)) {
+            setPopularTags(data.tags);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [pathname, currentTopic]);
 
   // FEED PAGE CONTEXT
   if (pathname.startsWith('/feed')) {
-    const currentTopic = searchParams.get('topic') || 'ALL';
+    const hasActiveFilters =
+      currentTopic !== 'ALL' ||
+      currentSubType !== 'ALL' ||
+      !!currentTag ||
+      currentTab !== 'FEED';
+
+    const buildFeedUrl = (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(updates).forEach(([k, v]) => {
+        if (!v || v === 'ALL' || (k === 'tab' && v === 'FEED')) {
+          params.delete(k);
+        } else {
+          params.set(k, v);
+        }
+      });
+      const qs = params.toString();
+      return qs ? `/feed?${qs}` : '/feed';
+    };
+
     return (
       <div className="space-y-4">
         {/* Header */}
@@ -48,9 +91,20 @@ export function ContextualExplorerBar() {
             <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
           <p className="text-[11px] text-[var(--theme-muted)]">
-            Categorías y canales oficiales
+            Canales temáticos y etiquetas
           </p>
         </div>
+
+        {/* Clear Filters Button if any is active */}
+        {hasActiveFilters && (
+          <Link
+            href="/feed"
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span>Limpiar todos los filtros</span>
+          </Link>
+        )}
 
         {/* Categories */}
         <div className="space-y-1">
@@ -69,7 +123,7 @@ export function ContextualExplorerBar() {
             return (
               <Link
                 key={cat.id}
-                href={cat.id === 'ALL' ? '/feed' : `/feed?topic=${cat.id}`}
+                href={buildFeedUrl({ topic: cat.id, subType: null, tab: null })}
                 className={cn(
                   'flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer',
                   active
@@ -87,6 +141,192 @@ export function ContextualExplorerBar() {
               </Link>
             );
           })}
+        </div>
+
+        {/* Sub-Filters: Shown when a specific topic is selected */}
+        {currentTopic !== 'ALL' && (
+          <div className="space-y-1 pt-1 border-t border-[var(--theme-border)]">
+            <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--theme-muted)] flex items-center justify-between">
+              <span>Sub-categorías</span>
+              <span className="text-[10px] font-semibold text-[var(--theme-primary)]">
+                {currentTopic === 'FOOTBALL'
+                  ? 'Fútbol'
+                  : currentTopic === 'STREAMING'
+                  ? 'Streaming'
+                  : currentTopic === 'TV_CHANNELS'
+                  ? 'TV'
+                  : 'Noticias'}
+              </span>
+            </div>
+
+            {/* Sub-options for FOOTBALL */}
+            {currentTopic === 'FOOTBALL' && (
+              <div className="space-y-0.5">
+                {[
+                  { id: 'ALL', label: 'Todo Fútbol', tab: 'FEED' },
+                  { id: 'MATCH_FEATURE', label: 'Partidos en Vivo', tab: 'FEED' },
+                  { id: 'FOOTBALL_POST', label: 'Crónicas y Resúmenes', tab: 'FEED' },
+                  { id: 'ALL', label: '🏆 Tabla de Posiciones', tab: 'STANDINGS' },
+                  { id: 'ALL', label: '🛡️ Equipos de la Liga', tab: 'TEAMS' },
+                ].map((st, idx) => {
+                  const active =
+                    (st.tab === 'FEED' && currentTab === 'FEED' && currentSubType === st.id) ||
+                    (st.tab !== 'FEED' && currentTab === st.tab);
+                  return (
+                    <Link
+                      key={`${st.id}-${st.tab}-${idx}`}
+                      href={buildFeedUrl({
+                        subType: st.id === 'ALL' ? null : st.id,
+                        tab: st.tab === 'FEED' ? null : st.tab,
+                      })}
+                      className={cn(
+                        'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
+                        active
+                          ? 'bg-[var(--theme-surface-hover)] text-[var(--theme-primary)] font-bold border-l-2 border-[var(--theme-primary)]'
+                          : 'text-[var(--theme-muted)] hover:text-[var(--theme-dark)] hover:bg-[var(--theme-surface-hover)]'
+                      )}
+                    >
+                      <span className="truncate">{st.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Sub-options for STREAMING */}
+            {currentTopic === 'STREAMING' && (
+              <div className="space-y-0.5">
+                {[
+                  { id: 'ALL', label: 'Todo Streaming' },
+                  { id: 'MOVIE', label: 'Películas' },
+                  { id: 'SERIES', label: 'Series' },
+                  { id: 'ANIME', label: 'Animes' },
+                ].map((st) => {
+                  const active = currentSubType === st.id;
+                  return (
+                    <Link
+                      key={st.id}
+                      href={buildFeedUrl({ subType: st.id === 'ALL' ? null : st.id })}
+                      className={cn(
+                        'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
+                        active
+                          ? 'bg-[var(--theme-surface-hover)] text-[var(--theme-primary)] font-bold border-l-2 border-[var(--theme-primary)]'
+                          : 'text-[var(--theme-muted)] hover:text-[var(--theme-dark)] hover:bg-[var(--theme-surface-hover)]'
+                      )}
+                    >
+                      <span className="truncate">{st.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Sub-options for TV_CHANNELS */}
+            {currentTopic === 'TV_CHANNELS' && (
+              <div className="space-y-0.5">
+                {[
+                  { id: 'ALL', label: 'Todos los Canales' },
+                  { id: 'PLAYLIST_ADDED', label: 'Listas Agregadas' },
+                  { id: 'CHANNEL_HIGHLIGHT', label: 'Canales Destacados' },
+                ].map((st) => {
+                  const active = currentSubType === st.id;
+                  return (
+                    <Link
+                      key={st.id}
+                      href={buildFeedUrl({ subType: st.id === 'ALL' ? null : st.id })}
+                      className={cn(
+                        'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
+                        active
+                          ? 'bg-[var(--theme-surface-hover)] text-[var(--theme-primary)] font-bold border-l-2 border-[var(--theme-primary)]'
+                          : 'text-[var(--theme-muted)] hover:text-[var(--theme-dark)] hover:bg-[var(--theme-surface-hover)]'
+                      )}
+                    >
+                      <span className="truncate">{st.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Sub-options for NEWS */}
+            {currentTopic === 'NEWS' && (
+              <div className="space-y-0.5">
+                {[
+                  { id: 'ALL', label: 'Todas las Noticias' },
+                  { id: 'PREMIUM', label: 'Cuentas Premium' },
+                  { id: 'DEMO', label: 'Demos y Pruebas' },
+                  { id: 'PROBLEM', label: 'Avisos del Club' },
+                ].map((st) => {
+                  const active = currentSubType === st.id;
+                  return (
+                    <Link
+                      key={st.id}
+                      href={buildFeedUrl({ subType: st.id === 'ALL' ? null : st.id })}
+                      className={cn(
+                        'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
+                        active
+                          ? 'bg-[var(--theme-surface-hover)] text-[var(--theme-primary)] font-bold border-l-2 border-[var(--theme-primary)]'
+                          : 'text-[var(--theme-muted)] hover:text-[var(--theme-dark)] hover:bg-[var(--theme-surface-hover)]'
+                      )}
+                    >
+                      <span className="truncate">{st.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Popular Tags / Etiquetas */}
+        <div className="space-y-2 pt-1 border-t border-[var(--theme-border)]">
+          <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--theme-muted)] flex items-center justify-between">
+            <span className="flex items-center gap-1">
+              <Tag className="h-3 w-3" /> Etiquetas
+            </span>
+            {currentTag ? (
+              <Link
+                href={buildFeedUrl({ tag: null })}
+                className="text-[10px] font-bold text-rose-500 hover:underline cursor-pointer"
+              >
+                Quitar #{currentTag}
+              </Link>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap gap-1 px-1">
+            {(popularTags.length > 0
+              ? popularTags
+              : [
+                  { tag: 'futbol', count: 2 },
+                  { tag: 'envivo', count: 1 },
+                  { tag: 'estrenos', count: 1 },
+                  { tag: '4k', count: 1 },
+                  { tag: 'nubatv', count: 1 },
+                  { tag: 'premium', count: 1 },
+                  { tag: 'resumen', count: 1 },
+                  { tag: 'peliculas', count: 1 },
+                ]
+            ).map((t) => {
+              const active = currentTag.toLowerCase() === t.tag.toLowerCase();
+              return (
+                <Link
+                  key={t.tag}
+                  href={buildFeedUrl({ tag: active ? null : t.tag })}
+                  className={cn(
+                    'inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer',
+                    active
+                      ? 'bg-[var(--theme-primary)] text-white shadow-2xs'
+                      : 'bg-[var(--theme-surface-hover)] text-[var(--theme-dark)] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-primary)] border border-[var(--theme-border)]'
+                  )}
+                  title={`Filtrar por #${t.tag}`}
+                >
+                  <span>#{t.tag}</span>
+                  {active ? <span className="text-[10px] ml-0.5">✕</span> : null}
+                </Link>
+              );
+            })}
+          </div>
         </div>
 
         {/* Quick Filter Info */}

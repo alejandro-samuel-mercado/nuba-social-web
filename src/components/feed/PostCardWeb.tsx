@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Calendar,
   ExternalLink,
@@ -10,6 +11,7 @@ import {
   Radio,
   Send,
   Star,
+  Tag,
   Trash2,
   Tv,
 } from 'lucide-react';
@@ -193,7 +195,16 @@ export function MatchFeatureWeb({ match }: { match: Match }) {
   );
 }
 
-export function PostCardWeb({ post, onUpdated }: { post: Post; onUpdated: () => void }) {
+export function PostCardWeb({
+  post,
+  onUpdated,
+  onTagClick,
+}: {
+  post: Post;
+  onUpdated: () => void;
+  onTagClick?: (tag: string) => void;
+}) {
+  const router = useRouter();
   const { user, settings, isStaff } = useAuth();
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<PostComment[]>(post.comments || []);
@@ -454,6 +465,30 @@ export function PostCardWeb({ post, onUpdated }: { post: Post; onUpdated: () => 
               className="w-full max-h-96 rounded-xl border border-[var(--theme-border)] object-cover shadow-xs"
             />
           ) : null}
+        </div>
+      ) : null}
+
+      {/* Post Tags / Etiquetas */}
+      {Array.isArray(post.tags) && post.tags.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          <Tag className="h-3 w-3 text-[var(--theme-muted)] shrink-0" />
+          {post.tags.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => {
+                if (onTagClick) {
+                  onTagClick(t);
+                } else {
+                  router.push(`/feed?tag=${encodeURIComponent(t)}`);
+                }
+              }}
+              className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[var(--theme-surface-hover)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary)] hover:text-white border border-[var(--theme-border)] transition-colors cursor-pointer"
+              title={`Filtrar por etiqueta #${t}`}
+            >
+              <span>#{t}</span>
+            </button>
+          ))}
         </div>
       ) : null}
 
