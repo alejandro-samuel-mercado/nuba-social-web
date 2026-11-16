@@ -56,7 +56,7 @@ export function AdminUsersSection() {
       setEmail('');
       setPassword('');
       setRole('USER');
-      setMsg('Cuenta privada creada correctamente.');
+      setMsg('Cuenta privada creada exitosamente.');
       await loadUsers();
     } catch (e: any) {
       setErr(e?.message || 'No se pudo crear la cuenta.');
@@ -86,20 +86,20 @@ export function AdminUsersSection() {
   return (
     <div className="space-y-6">
       {msg ? (
-        <GlassCard className="p-3 bg-emerald-100 border-emerald-700 text-emerald-900 text-sm font-bold">
+        <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold">
           {msg}
-        </GlassCard>
+        </div>
       ) : null}
       {err ? (
-        <GlassCard className="p-3 bg-red-100 border-red-600 text-red-800 text-sm font-bold">
+        <div className="p-3 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold">
           {err}
-        </GlassCard>
+        </div>
       ) : null}
 
       {isAdmin ? (
-        <GlassCard className="space-y-4">
-          <h2 className="text-xl font-black text-dark flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-secondary" /> Crear Cuenta Privada (Solo Admin)
+        <GlassCard className="p-5 space-y-4">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-indigo-600" /> Crear Cuenta Privada
           </h2>
           <form onSubmit={handleCreateUser} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <SacInput
@@ -129,11 +129,11 @@ export function AdminUsersSection() {
               required
             />
             <label className="block space-y-1.5">
-              <span className="block text-xs font-black text-dark/90">Rol</span>
+              <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Rol</span>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
-                className="w-full rounded-2xl border-2 border-dark/70 bg-white px-4 py-2.5 text-sm font-bold text-slate-900"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-900 dark:text-slate-100"
               >
                 {ROLES.map((r) => (
                   <option key={r} value={r}>
@@ -143,7 +143,7 @@ export function AdminUsersSection() {
               </select>
             </label>
             <div className="flex items-end">
-              <SacButton type="submit" variant="secondary" className="w-full">
+              <SacButton type="submit" variant="primary" className="w-full">
                 Crear Cuenta
               </SacButton>
             </div>
@@ -151,67 +151,76 @@ export function AdminUsersSection() {
         </GlassCard>
       ) : null}
 
-      <GlassCard className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-lg font-black text-dark">Cuentas Registradas ({users.length})</h3>
-          <div className="relative w-64">
-            <Search className="h-4 w-4 text-dark/50 absolute left-3 top-1/2 -translate-y-1/2" />
+      <GlassCard className="p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+            Cuentas Registradas ({users.length})
+          </h3>
+          <div className="relative w-full sm:w-64">
+            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar usuario..."
-              className="w-full rounded-full border-2 border-dark/40 bg-white pl-9 pr-4 py-1.5 text-xs font-bold text-slate-900"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-3.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"
             />
           </div>
         </div>
 
         {loading ? (
-          <p className="text-xs font-bold text-dark/60 py-6 text-center">Cargando usuarios...</p>
+          <p className="text-xs text-slate-400 py-6 text-center">Cargando usuarios...</p>
         ) : (
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {users.map((u) => {
               const isSelf = u.id === currentUser?.id;
               return (
                 <div
                   key={u.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dark/25 bg-white/85 p-3"
+                  className="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900"
                 >
-                  <div className="flex items-center gap-3">
-                    <SacAvatar src={u.avatarUrl} name={u.displayName} size={40} />
-                    <div>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <SacAvatar src={u.avatarUrl} name={u.displayName} size={36} />
+                    <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-black text-sm text-slate-900">{u.displayName}</span>
+                        <span className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
+                          {u.displayName}
+                        </span>
                         <SacBadge variant="primary">{u.role}</SacBadge>
                         {u.isActive === false ? <SacBadge variant="dark">BLOQUEADO</SacBadge> : null}
-                        {u.isMuted ? <SacBadge variant="secondary">SILENCIADO</SacBadge> : null}
+                        {u.isMuted ? <SacBadge variant="accent">SILENCIADO</SacBadge> : null}
                       </div>
-                      <div className="text-xs font-bold text-slate-500">
+                      <div className="text-[11px] text-slate-500 truncate">
                         @{u.username} {u.email ? `• ${u.email}` : ''}
                       </div>
                     </div>
                   </div>
 
                   {isAdmin && !isSelf ? (
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <SacButton
-                        size="sm"
-                        variant="glass"
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
                         onClick={() => void patchUser(u.id, { isMuted: !u.isMuted })}
-                        title={u.isMuted ? 'Quitar silencio' : 'Silenciar en chats/comentarios'}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+                        title={u.isMuted ? 'Quitar silencio' : 'Silenciar'}
                       >
                         {u.isMuted ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-                      </SacButton>
-                      <SacButton
-                        size="sm"
-                        variant="glass"
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => void patchUser(u.id, { isActive: !(u.isActive !== false) })}
-                        title={u.isActive === false ? 'Reactivar' : 'Suspender acceso'}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+                        title={u.isActive === false ? 'Reactivar' : 'Suspender'}
                       >
                         {u.isActive === false ? <CheckCircle className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}
-                      </SacButton>
-                      <SacButton size="sm" variant="danger" onClick={() => void deleteUser(u.id)}>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void deleteUser(u.id)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+                        title="Eliminar usuario"
+                      >
                         <Trash2 className="h-3.5 w-3.5" />
-                      </SacButton>
+                      </button>
                     </div>
                   ) : null}
                 </div>

@@ -2,7 +2,18 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CheckCheck, MessageCircle, Radio, Search, Shield, Trophy } from 'lucide-react';
+import {
+  CheckCheck,
+  Flame,
+  Gift,
+  HelpCircle,
+  MessageCircle,
+  Radio,
+  Search,
+  Sparkles,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import { api, resolveMediaUrl } from '@/lib/api';
 import { League, Post, RadarSummary, StandingRow, Team, TopicType } from '@/types/nuba';
 import { GlassCard, SacBadge, SacButton } from '@/components/ui/SacPrimitives';
@@ -78,48 +89,69 @@ export default function FeedPage() {
   };
 
   return (
-    <div className="space-y-5">
-      {/* Radar de Novedades */}
+    <div className="space-y-5 max-w-3xl mx-auto xl:mx-0 xl:max-w-none">
+      {/* =========================================================================
+          AMBIENT RADAR STRIP: Live Pulse Status
+          ========================================================================= */}
       {radar && (radar.totalNewPosts > 0 || radar.liveMatches.length > 0 || radar.pendingPollsCount > 0 || radar.openGiveaways.length > 0) ? (
-        <GlassCard className="p-4 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 font-black text-dark">
-              <Radio className="h-4 w-4 text-secondary" />
-              <span>Radar de Novedades</span>
-            </div>
+        <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-50/80 via-white to-indigo-50/80 dark:from-blue-950/40 dark:via-slate-900 dark:to-indigo-950/40 border border-blue-200/60 dark:border-blue-900/60 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <Radio className="h-4 w-4 text-blue-600" />
+              <span>Radar en Vivo</span>
+            </span>
+
             {radar.totalNewPosts > 0 ? (
               <button
                 onClick={() => void markVisited()}
-                className="inline-flex items-center gap-1 text-xs font-extrabold text-blue hover:underline cursor-pointer"
+                className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer flex items-center gap-1"
               >
-                <CheckCheck className="h-4 w-4" /> Marcar todo visto
+                <CheckCheck className="h-3.5 w-3.5" /> Marcar visto
               </button>
             ) : null}
           </div>
-          <div className="flex flex-wrap gap-2">
+
+          <div className="flex flex-wrap items-center gap-2">
             {radar.liveMatches.length > 0 ? (
-              <SacBadge variant="secondary">🔴 {radar.liveMatches.length} Partidos EN VIVO</SacBadge>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 text-xs font-bold animate-pulse">
+                <span className="h-2 w-2 rounded-full bg-rose-600" />
+                {radar.liveMatches.length} Partido(s) en vivo
+              </span>
             ) : null}
+
             {radar.totalNewPosts > 0 ? (
-              <SacBadge variant="primary">✨ {radar.totalNewPosts} Avisos nuevos</SacBadge>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 text-xs font-semibold">
+                ✨ {radar.totalNewPosts} Avisos nuevos
+              </span>
             ) : null}
+
             {radar.pendingPollsCount > 0 ? (
-              <Link href="/polls">
-                <SacBadge variant="accent">📊 {radar.pendingPollsCount} Encuesta(s) sin votar</SacBadge>
+              <Link
+                href="/polls"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 text-xs font-semibold hover:opacity-90"
+              >
+                📊 {radar.pendingPollsCount} Encuesta(s)
               </Link>
             ) : null}
+
             {radar.openGiveaways.length > 0 ? (
-              <Link href="/giveaways">
-                <SacBadge variant="secondary">🎁 {radar.openGiveaways.length} Sorteo(s) activos</SacBadge>
+              <Link
+                href="/giveaways"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 text-xs font-semibold hover:opacity-90"
+              >
+                🎁 {radar.openGiveaways.length} Sorteo(s)
               </Link>
             ) : null}
           </div>
-        </GlassCard>
+        </div>
       ) : null}
 
-      {/* Filtros de Tema + Buscador */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
+      {/* =========================================================================
+          TOP CATEGORY BAR: Pills + Search Box
+          ========================================================================= */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Topic Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           {(
             [
               { k: 'ALL', l: 'Todos', c: 0 },
@@ -128,39 +160,54 @@ export default function FeedPage() {
               { k: 'TV_CHANNELS', l: '📺 Canales TV', c: radar?.newByTopic?.TV_CHANNELS || 0 },
               { k: 'NEWS', l: '📢 Noticias', c: radar?.newByTopic?.NEWS || 0 },
             ] as Array<{ k: TopicType | 'ALL'; l: string; c: number }>
-          ).map((t) => (
-            <button
-              key={t.k}
-              onClick={() => {
-                setTopic(t.k);
-                setSubType('ALL');
-                setFootballTab('FEED');
-              }}
-              className={`inline-flex items-center gap-1.5 rounded-full border-2 border-dark px-4 py-2 text-xs font-black cursor-pointer transition ${
-                topic === t.k ? 'bg-secondary text-white shadow-[3px_3px_0_0_var(--color-dark)]' : 'bg-glass text-dark hover:bg-surface'
-              }`}
-            >
-              <span>{t.l}</span>
-              {t.c > 0 ? <span className="rounded-full bg-red-600 px-1.5 text-[10px] text-white">{t.c}</span> : null}
-            </button>
-          ))}
+          ).map((t) => {
+            const active = topic === t.k;
+            return (
+              <button
+                key={t.k}
+                onClick={() => {
+                  setTopic(t.k);
+                  setSubType('ALL');
+                  setFootballTab('FEED');
+                }}
+                className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                  active
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span>{t.l}</span>
+                {t.c > 0 ? (
+                  <span
+                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                      active ? 'bg-white text-blue-700' : 'bg-rose-600 text-white'
+                    }`}
+                  >
+                    {t.c}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="relative w-full md:w-72">
-          <Search className="h-4 w-4 text-dark/50 absolute left-3.5 top-1/2 -translate-y-1/2" />
+        {/* Search Input */}
+        <div className="relative w-full sm:w-60 shrink-0">
+          <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar avisos..."
-            className="w-full rounded-full border-2 border-dark bg-glass pl-10 pr-4 py-2 text-xs font-bold text-dark focus:outline-none"
+            className="w-full rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-3.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           />
         </div>
       </div>
 
-      {/* Filtros de subtipo + acceso directo al chat del tema */}
+      {/* Sub-type Filters if Topic is Active */}
       {topic !== 'ALL' ? (
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-medium text-slate-500 mr-1">Filtrar:</span>
             {(topic === 'FOOTBALL'
               ? [
                   { k: 'ALL', l: 'Todo Fútbol' },
@@ -168,30 +215,32 @@ export default function FeedPage() {
                   { k: 'FOOTBALL_POST', l: 'Publicaciones' },
                 ]
               : topic === 'STREAMING'
-                ? [
-                    { k: 'ALL', l: 'Todo' },
-                    { k: 'MOVIE', l: 'Películas' },
-                    { k: 'SERIES', l: 'Series' },
-                    { k: 'ANIME', l: 'Animes' },
-                  ]
-                : topic === 'TV_CHANNELS'
-                  ? [
-                      { k: 'ALL', l: 'Todo TV' },
-                      { k: 'PLAYLIST_ADDED', l: 'Listas' },
-                      { k: 'CHANNEL_HIGHLIGHT', l: 'Canales' },
-                    ]
-                  : [
-                      { k: 'ALL', l: 'Todas' },
-                      { k: 'PREMIUM', l: 'Premium' },
-                      { k: 'DEMO', l: 'Demo' },
-                      { k: 'PROBLEM', l: 'Problemas' },
-                    ]
+              ? [
+                  { k: 'ALL', l: 'Todo' },
+                  { k: 'MOVIE', l: 'Películas' },
+                  { k: 'SERIES', l: 'Series' },
+                  { k: 'ANIME', l: 'Animes' },
+                ]
+              : topic === 'TV_CHANNELS'
+              ? [
+                  { k: 'ALL', l: 'Todo TV' },
+                  { k: 'PLAYLIST_ADDED', l: 'Listas' },
+                  { k: 'CHANNEL_HIGHLIGHT', l: 'Canales' },
+                ]
+              : [
+                  { k: 'ALL', l: 'Todas' },
+                  { k: 'PREMIUM', l: 'Premium' },
+                  { k: 'DEMO', l: 'Demo' },
+                  { k: 'PROBLEM', l: 'Problemas' },
+                ]
             ).map((st) => (
               <button
                 key={st.k}
                 onClick={() => setSubType(st.k)}
-                className={`rounded-full border border-dark/40 px-3 py-1 text-[11px] font-black cursor-pointer transition ${
-                  subType === st.k ? 'bg-dark text-white' : 'bg-surface text-dark hover:bg-white'
+                className={`rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${
+                  subType === st.k
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100'
                 }`}
               >
                 {st.l}
@@ -201,39 +250,36 @@ export default function FeedPage() {
 
           <Link
             href={`/chats?topic=${topic}`}
-            className="inline-flex items-center gap-1.5 rounded-full border-2 border-dark bg-primary px-3.5 py-1.5 text-xs font-black text-on-primary shadow-[2px_2px_0_0_var(--color-dark)] hover:opacity-95"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-3 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors"
           >
-            <MessageCircle className="h-3.5 w-3.5" /> Chat de{' '}
-            {topic === 'FOOTBALL'
-              ? 'Fútbol'
-              : topic === 'STREAMING'
-                ? 'Streaming'
-                : topic === 'TV_CHANNELS'
-                  ? 'Canales TV'
-                  : 'Noticias'}
+            <MessageCircle className="h-3.5 w-3.5" />
+            <span>Chat de {topic === 'FOOTBALL' ? 'Fútbol' : topic === 'STREAMING' ? 'Streaming' : topic === 'TV_CHANNELS' ? 'Canales TV' : 'Noticias'}</span>
           </Link>
         </div>
       ) : null}
 
-      {/* Subnavegación Fútbol */}
+      {/* Football sub-tabs (Partidos, Tabla, Equipos) */}
       {topic === 'FOOTBALL' ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             {(
               [
-                { k: 'FEED', l: 'Partidos & Publicaciones' },
+                { k: 'FEED', l: 'Partidos & Novedades' },
                 { k: 'STANDINGS', l: '🏆 Tabla de Posiciones' },
                 { k: 'TEAMS', l: '🛡️ Equipos' },
               ] as const
             ).map((ft) => (
-              <SacButton
+              <button
                 key={ft.k}
-                size="sm"
-                variant={footballTab === ft.k ? 'primary' : 'glass'}
                 onClick={() => setFootballTab(ft.k)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                  footballTab === ft.k
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                }`}
               >
                 {ft.l}
-              </SacButton>
+              </button>
             ))}
           </div>
 
@@ -241,7 +287,7 @@ export default function FeedPage() {
             <select
               value={selectedLeagueId}
               onChange={(e) => setSelectedLeagueId(e.target.value)}
-              className="rounded-full border-2 border-dark bg-white px-4 py-1.5 text-xs font-black text-dark"
+              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200"
             >
               {leagues.map((lg) => (
                 <option key={lg.id} value={lg.id}>
@@ -253,66 +299,74 @@ export default function FeedPage() {
         </div>
       ) : null}
 
-      {/* Tabla de Posiciones */}
+      {/* =========================================================================
+          CONTENT STREAM: Posts / Standings / Teams
+          ========================================================================= */}
       {topic === 'FOOTBALL' && footballTab === 'STANDINGS' ? (
-        <GlassCard className="overflow-x-auto">
-          <h2 className="text-lg font-black text-dark mb-3 flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-secondary" /> Tabla de Posiciones
+        <GlassCard className="p-5 overflow-x-auto">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-amber-500" /> Tabla de Posiciones
           </h2>
           <table className="w-full text-left text-xs sm:text-sm">
             <thead>
-              <tr className="border-b-2 border-dark text-dark/70 font-black">
-                <th className="py-2 pr-2">#</th>
-                <th className="py-2">Equipo</th>
-                <th className="py-2 text-center">PJ</th>
-                <th className="py-2 text-center">G</th>
-                <th className="py-2 text-center">E</th>
-                <th className="py-2 text-center">P</th>
-                <th className="py-2 text-center">DG</th>
-                <th className="py-2 text-right">PTS</th>
+              <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-500 font-semibold">
+                <th className="py-2.5 pr-2">#</th>
+                <th className="py-2.5">Equipo</th>
+                <th className="py-2.5 text-center">PJ</th>
+                <th className="py-2.5 text-center">G</th>
+                <th className="py-2.5 text-center">E</th>
+                <th className="py-2.5 text-center">P</th>
+                <th className="py-2.5 text-center">DG</th>
+                <th className="py-2.5 text-right">PTS</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {standings.map((r, idx) => (
-                <tr key={r.id} className="border-b border-dark/10 font-bold">
-                  <td className="py-2.5 pr-2 font-black">{r.position || idx + 1}</td>
-                  <td className="py-2.5 flex items-center gap-2">
+                <tr key={r.id} className="font-medium text-slate-800 dark:text-slate-200">
+                  <td className="py-2.5 pr-2 font-bold text-slate-500">{r.position || idx + 1}</td>
+                  <td className="py-2.5 flex items-center gap-2.5">
                     <span
                       style={{ backgroundColor: r.team.colorPrimary, color: r.team.colorSecondary }}
-                      className="h-7 w-7 rounded-lg border border-dark flex items-center justify-center text-[10px] font-black overflow-hidden"
+                      className="h-6 w-6 rounded-md flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0 shadow-2xs"
                     >
                       {r.team.logoUrl ? (
-                        <img src={resolveMediaUrl(r.team.logoUrl)!} alt={r.team.name} className="h-5 w-5 object-contain" />
+                        <img src={resolveMediaUrl(r.team.logoUrl)!} alt={r.team.name} className="h-4 w-4 object-contain" />
                       ) : (
                         r.team.shortName
                       )}
                     </span>
-                    <span>{r.team.name}</span>
+                    <span className="font-semibold">{r.team.name}</span>
                   </td>
-                  <td className="py-2.5 text-center">{r.played}</td>
-                  <td className="py-2.5 text-center">{r.won}</td>
-                  <td className="py-2.5 text-center">{r.drawn}</td>
-                  <td className="py-2.5 text-center">{r.lost}</td>
-                  <td className="py-2.5 text-center">{r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}</td>
-                  <td className="py-2.5 text-right font-black text-secondary">{r.points}</td>
+                  <td className="py-2.5 text-center text-slate-600 dark:text-slate-400">{r.played}</td>
+                  <td className="py-2.5 text-center text-slate-600 dark:text-slate-400">{r.won}</td>
+                  <td className="py-2.5 text-center text-slate-600 dark:text-slate-400">{r.drawn}</td>
+                  <td className="py-2.5 text-center text-slate-600 dark:text-slate-400">{r.lost}</td>
+                  <td className="py-2.5 text-center text-slate-600 dark:text-slate-400">
+                    {r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}
+                  </td>
+                  <td className="py-2.5 text-right font-bold text-blue-600 dark:text-blue-400">{r.points}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </GlassCard>
       ) : topic === 'FOOTBALL' && footballTab === 'TEAMS' ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {teams.map((t) => (
-            <GlassCard key={t.id} className="flex items-center gap-3 p-4">
+            <GlassCard key={t.id} className="flex items-center gap-3 p-3.5">
               <div
                 style={{ backgroundColor: t.colorPrimary, color: t.colorSecondary }}
-                className="h-12 w-12 rounded-2xl border-2 border-dark flex items-center justify-center font-black shrink-0"
+                className="h-11 w-11 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-2xs"
               >
-                {t.logoUrl ? <img src={resolveMediaUrl(t.logoUrl)!} alt={t.name} className="h-8 w-8 object-contain" /> : t.shortName}
+                {t.logoUrl ? (
+                  <img src={resolveMediaUrl(t.logoUrl)!} alt={t.name} className="h-7 w-7 object-contain" />
+                ) : (
+                  t.shortName
+                )}
               </div>
               <div className="min-w-0">
-                <div className="font-black text-dark truncate">{t.name}</div>
-                <div className="text-xs font-semibold text-dark/65 truncate">
+                <div className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">{t.name}</div>
+                <div className="text-xs text-slate-500 truncate">
                   {t.stadium || 'Estadio'} {t.city ? `• ${t.city}` : ''}
                 </div>
               </div>
@@ -320,13 +374,21 @@ export default function FeedPage() {
           ))}
         </div>
       ) : loading ? (
-        <GlassCard className="text-center py-12 font-bold text-dark/65">Cargando avisos...</GlassCard>
+        <GlassCard className="text-center py-12 text-sm text-slate-500 font-medium">
+          Cargando publicaciones...
+        </GlassCard>
       ) : posts.length === 0 ? (
-        <GlassCard className="text-center py-12 font-bold text-dark/65">
-          No hay publicaciones en esta sección todavía.
+        <GlassCard className="text-center py-12 space-y-2">
+          <Sparkles className="h-8 w-8 mx-auto text-slate-400" />
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            No hay avisos en esta sección todavía.
+          </p>
+          <p className="text-xs text-slate-500">
+            Probá seleccionando otra categoría o limpiando la búsqueda.
+          </p>
         </GlassCard>
       ) : (
-        <div className="grid lg:grid-cols-2 gap-5 items-start">
+        <div className="space-y-4">
           {posts.map((p) => (
             <PostCardWeb key={p.id} post={p} onUpdated={() => void loadFeed()} />
           ))}

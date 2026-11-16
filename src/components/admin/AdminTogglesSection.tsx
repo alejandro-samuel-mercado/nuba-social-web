@@ -136,54 +136,54 @@ export function AdminTogglesSection() {
   return (
     <div className="space-y-5">
       {msg ? (
-        <GlassCard className="p-3 bg-emerald-100 border-emerald-700 text-emerald-900 text-sm font-bold">
+        <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold">
           {msg}
-        </GlassCard>
+        </div>
       ) : null}
       {err ? (
-        <GlassCard className="p-3 bg-red-100 border-red-600 text-red-800 text-sm font-bold">
+        <div className="p-3 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold">
           {err}
-        </GlassCard>
+        </div>
       ) : null}
 
-      {/* Métricas */}
+      {/* Metrics Row */}
       {stats ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <GlassCard className="p-4 text-center">
-            <div className="text-2xl font-black text-dark">{stats.activeUsers}/{stats.totalUsers}</div>
-            <div className="text-xs font-extrabold text-dark/65">Usuarios activos</div>
+          <GlassCard className="p-3.5 text-center">
+            <div className="text-xl font-bold text-slate-900 dark:text-slate-100">{stats.activeUsers}/{stats.totalUsers}</div>
+            <div className="text-[11px] font-medium text-slate-500">Usuarios activos</div>
           </GlassCard>
-          <GlassCard className="p-4 text-center">
-            <div className="text-2xl font-black text-dark">{stats.totalPosts}</div>
-            <div className="text-xs font-extrabold text-dark/65">Publicaciones ({stats.pendingPosts} pend.)</div>
+          <GlassCard className="p-3.5 text-center">
+            <div className="text-xl font-bold text-slate-900 dark:text-slate-100">{stats.totalPosts}</div>
+            <div className="text-[11px] font-medium text-slate-500">Publicaciones ({stats.pendingPosts} pend.)</div>
           </GlassCard>
-          <GlassCard className="p-4 text-center">
-            <div className="text-2xl font-black text-secondary">{stats.liveMatches}</div>
-            <div className="text-xs font-extrabold text-dark/65">Partidos EN VIVO ({stats.upcomingMatches} próx.)</div>
+          <GlassCard className="p-3.5 text-center">
+            <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{stats.liveMatches}</div>
+            <div className="text-[11px] font-medium text-slate-500">Partidos EN VIVO ({stats.upcomingMatches} próx.)</div>
           </GlassCard>
-          <GlassCard className="p-4 text-center">
-            <div className="text-2xl font-black text-dark">{stats.openPolls} / {stats.openGiveaways}</div>
-            <div className="text-xs font-extrabold text-dark/65">Encuestas / Sorteos abiertos</div>
+          <GlassCard className="p-3.5 text-center">
+            <div className="text-xl font-bold text-slate-900 dark:text-slate-100">{stats.openPolls} / {stats.openGiveaways}</div>
+            <div className="text-[11px] font-medium text-slate-500">Encuestas / Sorteos</div>
           </GlassCard>
           <Link href="/support">
-            <GlassCard className="p-4 text-center hover:bg-primary/40 cursor-pointer">
-              <div className="text-2xl font-black text-red-600">{stats.unreadThreads}</div>
-              <div className="text-xs font-extrabold text-dark/80 flex items-center justify-center gap-1">
-                <LifeBuoy className="h-3.5 w-3.5" /> Inbox sin leer
+            <GlassCard className="p-3.5 text-center hover:border-blue-500 transition-colors cursor-pointer">
+              <div className="text-xl font-bold text-rose-600">{stats.unreadThreads}</div>
+              <div className="text-[11px] font-medium text-slate-500 flex items-center justify-center gap-1">
+                <LifeBuoy className="h-3.5 w-3.5 text-rose-500" /> Inbox sin leer
               </div>
             </GlassCard>
           </Link>
         </div>
       ) : null}
 
-      {/* Módulos en Tiempo Real */}
-      <GlassCard className="space-y-4">
+      {/* Feature Switches */}
+      <GlassCard className="p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-xl font-black text-dark flex items-center gap-2">
-            <Shield className="h-5 w-5 text-secondary" /> Módulos Activos del Club
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Shield className="h-5 w-5 text-indigo-600" /> Módulos Activos del Club
           </h2>
           {!isAdmin ? (
-            <span className="text-xs font-black text-red-600">
+            <span className="text-xs text-rose-600 font-medium">
               Solo SUPERADMIN/ADMIN pueden modificar interruptores globales.
             </span>
           ) : null}
@@ -195,15 +195,15 @@ export function AdminTogglesSection() {
             return (
               <label
                 key={item.key}
-                className="flex items-center justify-between gap-3 rounded-2xl border-2 border-dark/25 bg-white/85 px-4 py-3 cursor-pointer"
+                className="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
               >
-                <span className="text-xs sm:text-sm font-black text-slate-900">{item.label}</span>
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">{item.label}</span>
                 <input
                   type="checkbox"
                   checked={val}
                   disabled={!isAdmin}
                   onChange={(e) => void toggleSetting(item.key, e.target.checked)}
-                  className="h-4 w-4 accent-secondary"
+                  className="h-4 w-4 rounded accent-blue-600"
                 />
               </label>
             );
@@ -211,11 +211,11 @@ export function AdminTogglesSection() {
         </div>
       </GlassCard>
 
-      {/* Banner y Límites */}
+      {/* Banner & Restrictions */}
       <div className="grid lg:grid-cols-2 gap-5">
-        <GlassCard className="space-y-3">
-          <h3 className="text-lg font-black text-dark flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-secondary" /> Banner & Límites Anti-Spam
+        <GlassCard className="p-5 space-y-3.5">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-blue-600" /> Banner & Límites Anti-Spam
           </h3>
           <form onSubmit={saveMeta} className="space-y-3">
             <SacInput
@@ -231,13 +231,13 @@ export function AdminTogglesSection() {
             />
             <div className="grid grid-cols-3 gap-2">
               <SacInput
-                label="Máx chars coment."
+                label="Máx chars"
                 type="number"
                 value={maxLen}
                 onChange={(e) => setMaxLen(e.target.value)}
               />
               <SacInput
-                label="Cooldown coment (s)"
+                label="Cooldown com. (s)"
                 type="number"
                 value={commentCooldown}
                 onChange={(e) => setCommentCooldown(e.target.value)}
@@ -249,45 +249,49 @@ export function AdminTogglesSection() {
                 onChange={(e) => setImgCooldown(e.target.value)}
               />
             </div>
-            <SacButton type="submit" variant="primary" size="sm" disabled={!isAdmin}>
-              Guardar Banner y Límites
-            </SacButton>
+            <div className="flex justify-end pt-1">
+              <SacButton type="submit" variant="primary" size="sm" disabled={!isAdmin}>
+                Guardar Ajustes
+              </SacButton>
+            </div>
           </form>
         </GlassCard>
 
-        {/* Palabras Restringidas */}
-        <GlassCard className="space-y-3">
-          <h3 className="text-lg font-black text-dark">Filtro de Palabras Prohibidas</h3>
+        {/* Restricted Words */}
+        <GlassCard className="p-5 space-y-3.5">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            Filtro de Palabras Prohibidas
+          </h3>
           <form onSubmit={addWord} className="flex gap-2">
             <input
               value={newWord}
               onChange={(e) => setNewWord(e.target.value)}
-              placeholder="Agregar palabra restringida..."
-              className="flex-1 rounded-full border-2 border-dark/60 bg-white px-4 py-1.5 text-sm font-bold text-slate-900"
+              placeholder="Agregar palabra a restringir..."
+              className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"
             />
-            <SacButton type="submit" size="sm" variant="secondary">
+            <SacButton type="submit" size="sm" variant="primary">
               <Plus className="h-4 w-4" /> Agregar
             </SacButton>
           </form>
 
-          <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pt-1">
+          <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pt-1">
             {words.map((w) => (
               <span
                 key={w.id}
-                className="inline-flex items-center gap-1.5 rounded-full border border-dark bg-white px-3 py-1 text-xs font-black text-slate-900"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200"
               >
-                {w.word}
+                <span>{w.word}</span>
                 <button
                   type="button"
                   onClick={() => void deleteWord(w.id)}
-                  className="text-red-600 hover:text-red-800 cursor-pointer"
+                  className="text-slate-400 hover:text-rose-600 cursor-pointer"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
               </span>
             ))}
             {words.length === 0 ? (
-              <p className="text-xs font-semibold text-dark/60">Sin palabras bloqueadas.</p>
+              <p className="text-xs text-slate-400 py-2">Sin palabras bloqueadas.</p>
             ) : null}
           </div>
         </GlassCard>

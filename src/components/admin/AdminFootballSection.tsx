@@ -27,11 +27,11 @@ export function AdminFootballSection() {
   const [teamShort, setTeamShort] = useState('');
   const [teamStadium, setTeamStadium] = useState('');
   const [teamCity, setTeamCity] = useState('');
-  const [teamColor1, setTeamColor1] = useState('#e57a67');
-  const [teamColor2, setTeamColor2] = useState('#2d2d2d');
+  const [teamColor1, setTeamColor1] = useState('#2563eb');
+  const [teamColor2, setTeamColor2] = useState('#0f172a');
   const [teamLogoUrl, setTeamLogoUrl] = useState('');
 
-  // Form Partido / Feature
+  // Form Match
   const [matchLeagueId, setMatchLeagueId] = useState('');
   const [homeTeamId, setHomeTeamId] = useState('');
   const [awayTeamId, setAwayTeamId] = useState('');
@@ -106,7 +106,7 @@ export function AdminFootballSection() {
         setSelectedLeagueId(data.league.id);
         setMatchLeagueId(data.league.id);
       }
-      setMsg('Liga / Torneo creado.');
+      setMsg('Liga / Torneo creado correctamente.');
       await loadData();
     } catch (e: any) {
       setErr(e?.message || 'Error al crear liga.');
@@ -133,7 +133,7 @@ export function AdminFootballSection() {
       setTeamStadium('');
       setTeamCity('');
       setTeamLogoUrl('');
-      setMsg('Equipo creado y sumado al buscador.');
+      setMsg('Equipo creado exitosamente.');
       await loadData();
     } catch (e: any) {
       setErr(e?.message || 'Error al crear equipo.');
@@ -168,7 +168,7 @@ export function AdminFootballSection() {
       setPostTitle('');
       setPostContent('');
       setFeatureImageUrl('');
-      setMsg('Partido Feature creado y publicado.');
+      setMsg('Partido creado y publicado.');
       await loadData();
     } catch (e: any) {
       setErr(e?.message || 'No se pudo crear el partido.');
@@ -194,30 +194,30 @@ export function AdminFootballSection() {
   return (
     <div className="space-y-6">
       {msg ? (
-        <GlassCard className="p-3 bg-emerald-100 border-emerald-700 text-emerald-900 text-sm font-bold">
+        <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold">
           {msg}
-        </GlassCard>
+        </div>
       ) : null}
       {err ? (
-        <GlassCard className="p-3 bg-red-100 border-red-600 text-red-800 text-sm font-bold">
+        <div className="p-3 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold">
           {err}
-        </GlassCard>
+        </div>
       ) : null}
 
-      {/* Crear Partido Feature */}
-      <GlassCard className="space-y-4">
-        <h2 className="text-xl font-black text-dark flex items-center gap-2">
+      {/* Create Match Feature */}
+      <GlassCard className="p-5 space-y-4">
+        <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
           ⚽ Creador de Partido & Feature Visual
         </h2>
 
-        <form onSubmit={handleCreateMatch} className="space-y-3">
+        <form onSubmit={handleCreateMatch} className="space-y-3.5">
           <div className="grid sm:grid-cols-3 gap-3">
             <label className="block space-y-1">
-              <span className="text-xs font-black text-dark/90">Liga / Torneo</span>
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Liga / Torneo</span>
               <select
                 value={matchLeagueId}
                 onChange={(e) => setMatchLeagueId(e.target.value)}
-                className="w-full rounded-2xl border-2 border-dark/70 bg-white px-3 py-2.5 text-sm font-bold text-slate-900"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-medium text-slate-900 dark:text-slate-100"
               >
                 <option value="">Elegir liga...</option>
                 {leagues.map((l) => (
@@ -229,13 +229,13 @@ export function AdminFootballSection() {
             </label>
 
             <label className="block space-y-1">
-              <span className="text-xs font-black text-dark/90">Equipo Local</span>
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Equipo Local</span>
               <select
                 value={homeTeamId}
                 onChange={(e) => handleSelectHomeTeam(e.target.value)}
-                className="w-full rounded-2xl border-2 border-dark/70 bg-white px-3 py-2.5 text-sm font-bold text-slate-900"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-medium text-slate-900 dark:text-slate-100"
               >
-                <option value="">Buscar / elegir local...</option>
+                <option value="">Elegir local...</option>
                 {teams.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name} ({t.shortName})
@@ -245,13 +245,13 @@ export function AdminFootballSection() {
             </label>
 
             <label className="block space-y-1">
-              <span className="text-xs font-black text-dark/90">Equipo Visitante</span>
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Equipo Visitante</span>
               <select
                 value={awayTeamId}
                 onChange={(e) => setAwayTeamId(e.target.value)}
-                className="w-full rounded-2xl border-2 border-dark/70 bg-white px-3 py-2.5 text-sm font-bold text-slate-900"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-medium text-slate-900 dark:text-slate-100"
               >
-                <option value="">Buscar / elegir visitante...</option>
+                <option value="">Elegir visitante...</option>
                 {teams.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name} ({t.shortName})
@@ -270,21 +270,21 @@ export function AdminFootballSection() {
             />
             <SacInput label="Jornada" value={matchday} onChange={(e) => setMatchday(e.target.value)} />
             <SacInput label="Estadio" value={matchStadium} onChange={(e) => setMatchStadium(e.target.value)} />
-            <SacInput label="Ciudad / Lugar" value={matchLocation} onChange={(e) => setMatchLocation(e.target.value)} />
+            <SacInput label="Lugar / Ciudad" value={matchLocation} onChange={(e) => setMatchLocation(e.target.value)} />
           </div>
 
           <div className="grid sm:grid-cols-3 gap-3">
             <SacInput
-              label="Transmisión / Canal TV"
+              label="Canal / Transmisión"
               value={broadcastInfo}
               onChange={(e) => setBroadcastInfo(e.target.value)}
             />
             <label className="block space-y-1">
-              <span className="text-xs font-black text-dark/90">Estado</span>
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Estado</span>
               <select
                 value={matchStatus}
                 onChange={(e) => setMatchStatus(e.target.value as MatchStatus)}
-                className="w-full rounded-2xl border-2 border-dark/70 bg-white px-3 py-2.5 text-sm font-bold text-slate-900"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-medium text-slate-900 dark:text-slate-100"
               >
                 {MATCH_STATUSES.map((s) => (
                   <option key={s} value={s}>
@@ -294,13 +294,13 @@ export function AdminFootballSection() {
               </select>
             </label>
             <label className="block space-y-1">
-              <span className="text-xs font-black text-dark/90">Modo de Feature</span>
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Modo de Feature</span>
               <select
                 value={featureMode}
                 onChange={(e) => setFeatureMode(e.target.value as FeatureVisualMode)}
-                className="w-full rounded-2xl border-2 border-dark/70 bg-white px-3 py-2.5 text-sm font-bold text-slate-900"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-medium text-slate-900 dark:text-slate-100"
               >
-                <option value="AUTO">Automático (Escudos y Colores)</option>
+                <option value="AUTO">Automático (Colores y Escudos)</option>
                 <option value="CUSTOM_IMAGE">Imagen Poster Propia</option>
               </select>
             </label>
@@ -321,14 +321,18 @@ export function AdminFootballSection() {
                   setFeatureImageUrl(url);
                 }}
               />
-              <SacButton type="button" size="sm" variant="glass" onClick={() => featureImgRef.current?.click()}>
-                <ImageIcon className="h-4 w-4" /> Subir Banner Feature
-              </SacButton>
+              <button
+                type="button"
+                onClick={() => featureImgRef.current?.click()}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100"
+              >
+                <ImageIcon className="h-4 w-4 inline mr-1" /> Subir Banner
+              </button>
               {featureImageUrl ? (
                 <img
                   src={resolveMediaUrl(featureImageUrl)!}
                   alt="Feature"
-                  className="h-14 w-24 rounded-xl border-2 border-dark object-cover"
+                  className="h-12 w-20 rounded-lg border border-slate-200 object-cover"
                 />
               ) : null}
             </div>
@@ -336,52 +340,54 @@ export function AdminFootballSection() {
 
           <div className="grid sm:grid-cols-2 gap-3">
             <SacInput
-              label="Título opcional del aviso"
+              label="Título del aviso (opcional)"
               value={postTitle}
               onChange={(e) => setPostTitle(e.target.value)}
               placeholder="Auto-generado si lo dejás vacío"
             />
             <SacInput
-              label="Nota / detalle adicional"
+              label="Nota previa (opcional)"
               value={postContent}
               onChange={(e) => setPostContent(e.target.value)}
-              placeholder="Previa, horario de transmisión, canal..."
+              placeholder="Detalles sobre el partido..."
             />
           </div>
 
-          <label className="flex items-center gap-2 text-xs font-black text-dark cursor-pointer">
-            <input type="checkbox" checked={publishPost} onChange={(e) => setPublishPost(e.target.checked)} />
-            Publicar tarjeta Feature automáticamente en el Feed de Fútbol
+          <label className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+            <input type="checkbox" checked={publishPost} onChange={(e) => setPublishPost(e.target.checked)} className="rounded accent-blue-600" />
+            <span>Publicar tarjeta Feature automáticamente en el Feed de Fútbol</span>
           </label>
 
-          <SacButton type="submit" variant="secondary">
-            Crear Partido Feature
-          </SacButton>
+          <div className="flex justify-end pt-1">
+            <SacButton type="submit" variant="primary">
+              Crear Partido Feature
+            </SacButton>
+          </div>
         </form>
       </GlassCard>
 
-      {/* Ligas y Equipos */}
+      {/* Leagues and Teams */}
       <div className="grid lg:grid-cols-2 gap-5">
-        <GlassCard className="space-y-3">
-          <h3 className="text-lg font-black text-dark flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-secondary" /> Ligas y Torneos
+        <GlassCard className="p-5 space-y-3.5">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-amber-500" /> Ligas y Torneos
           </h3>
           <form onSubmit={handleCreateLeague} className="grid grid-cols-2 gap-2.5">
             <SacInput label="Nombre Liga" value={leagueName} onChange={(e) => setLeagueName(e.target.value)} required />
             <SacInput label="Sigla" value={leagueShort} onChange={(e) => setLeagueShort(e.target.value)} />
             <SacInput label="País" value={leagueCountry} onChange={(e) => setLeagueCountry(e.target.value)} />
             <SacInput label="Temporada" value={leagueSeason} onChange={(e) => setLeagueSeason(e.target.value)} />
-            <div className="col-span-2">
+            <div className="col-span-2 flex justify-end pt-1">
               <SacButton type="submit" size="sm" variant="primary">
-                Crear Liga / Torneo
+                Crear Liga
               </SacButton>
             </div>
           </form>
         </GlassCard>
 
-        <GlassCard className="space-y-3">
-          <h3 className="text-lg font-black text-dark flex items-center gap-2">
-            <Shield className="h-5 w-5 text-secondary" /> Crear Equipo (con Escudo & Estadio)
+        <GlassCard className="p-5 space-y-3.5">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Shield className="h-4 w-4 text-blue-600" /> Crear Equipo
           </h3>
           <form onSubmit={handleCreateTeam} className="grid grid-cols-2 gap-2.5">
             <SacInput label="Nombre Equipo" value={teamName} onChange={(e) => setTeamName(e.target.value)} required />
@@ -390,7 +396,7 @@ export function AdminFootballSection() {
             <SacInput label="Ciudad" value={teamCity} onChange={(e) => setTeamCity(e.target.value)} />
             <SacInput label="Color Primario" type="color" value={teamColor1} onChange={(e) => setTeamColor1(e.target.value)} />
             <SacInput label="Color Secundario" type="color" value={teamColor2} onChange={(e) => setTeamColor2(e.target.value)} />
-            <div className="col-span-2 flex items-center gap-3">
+            <div className="col-span-2 flex items-center justify-between gap-3 pt-1">
               <input
                 ref={teamLogoRef}
                 type="file"
@@ -404,10 +410,14 @@ export function AdminFootballSection() {
                   setTeamLogoUrl(url);
                 }}
               />
-              <SacButton type="button" size="sm" variant="glass" onClick={() => teamLogoRef.current?.click()}>
-                <ImageIcon className="h-4 w-4" /> Subir Escudo
-              </SacButton>
-              <SacButton type="submit" size="sm" variant="secondary">
+              <button
+                type="button"
+                onClick={() => teamLogoRef.current?.click()}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 cursor-pointer"
+              >
+                <ImageIcon className="h-3.5 w-3.5 inline mr-1" /> Subir Escudo
+              </button>
+              <SacButton type="submit" size="sm" variant="primary">
                 Guardar Equipo
               </SacButton>
             </div>
@@ -415,40 +425,42 @@ export function AdminFootballSection() {
         </GlassCard>
       </div>
 
-      {/* Buscador de Equipos & Marcador en Vivo + Tabla de Posiciones */}
+      {/* Match Scores and Standings */}
       <div className="grid lg:grid-cols-2 gap-5">
-        <GlassCard className="space-y-3">
-          <h3 className="text-lg font-black text-dark">Marcadores y Estados en Vivo</h3>
-          <div className="space-y-2.5 max-h-80 overflow-y-auto">
+        <GlassCard className="p-5 space-y-3">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            Marcadores en Vivo
+          </h3>
+          <div className="space-y-2 max-h-72 overflow-y-auto">
             {matches.map((m) => (
-              <div key={m.id} className="rounded-2xl border border-dark/25 bg-white/85 p-3 space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-black text-slate-900">
-                    {m.homeTeam.shortName} vs {m.awayTeam.shortName} ({m.league?.shortName || m.league?.name})
+              <div key={m.id} className="p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
+                <div className="flex items-center justify-between text-xs font-semibold">
+                  <span className="text-slate-900 dark:text-slate-100">
+                    {m.homeTeam.shortName} vs {m.awayTeam.shortName}
                   </span>
                   <SacBadge variant={m.status === 'LIVE' ? 'secondary' : 'outline'}>{m.status}</SacBadge>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => void updateMatchScore(m, m.homeScore + 1, m.awayScore, 'LIVE')}
-                    className="rounded-full border border-dark px-2.5 py-0.5 text-xs font-black bg-primary cursor-pointer"
+                    className="px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 text-xs font-medium"
                   >
                     +1 {m.homeTeam.shortName} ({m.homeScore})
                   </button>
                   <button
                     type="button"
                     onClick={() => void updateMatchScore(m, m.homeScore, m.awayScore + 1, 'LIVE')}
-                    className="rounded-full border border-dark px-2.5 py-0.5 text-xs font-black bg-primary cursor-pointer"
+                    className="px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 text-xs font-medium"
                   >
                     +1 {m.awayTeam.shortName} ({m.awayScore})
                   </button>
                   <button
                     type="button"
                     onClick={() => void updateMatchScore(m, m.homeScore, m.awayScore, 'FINISHED')}
-                    className="rounded-full border border-dark px-2.5 py-0.5 text-xs font-black bg-secondary text-white cursor-pointer"
+                    className="px-2 py-0.5 rounded-lg bg-slate-900 text-white text-xs font-medium"
                   >
-                    Finalizar (Actualiza Tabla)
+                    Finalizar
                   </button>
                 </div>
               </div>
@@ -456,48 +468,31 @@ export function AdminFootballSection() {
           </div>
         </GlassCard>
 
-        <GlassCard className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-lg font-black text-dark">Posiciones & Buscador de Equipos</h3>
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedLeagueId}
-                onChange={(e) => setSelectedLeagueId(e.target.value)}
-                className="rounded-full border-2 border-dark/40 bg-white px-3 py-1 text-xs font-black text-slate-900"
-              >
-                {leagues.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
-              <SacButton size="sm" variant="glass" onClick={() => void recalculateStandings()}>
-                <RefreshCw className="h-3.5 w-3.5" /> Recalcular
-              </SacButton>
-            </div>
+        <GlassCard className="p-5 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              Posiciones
+            </h3>
+            <button
+              type="button"
+              onClick={() => void recalculateStandings()}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100"
+            >
+              <RefreshCw className="h-3 w-3" /> Recalcular
+            </button>
           </div>
 
-          <div className="relative">
-            <Search className="h-4 w-4 text-dark/50 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              value={teamSearch}
-              onChange={(e) => setTeamSearch(e.target.value)}
-              placeholder="Buscar equipo registrado..."
-              className="w-full rounded-full border-2 border-dark/40 bg-white pl-9 pr-4 py-1.5 text-xs font-bold text-slate-900"
-            />
-          </div>
-
-          <div className="space-y-1.5 max-h-64 overflow-y-auto text-xs font-bold">
+          <div className="space-y-1 max-h-60 overflow-y-auto text-xs">
             {standings.map((r) => (
               <div
                 key={r.id}
-                className="flex items-center justify-between rounded-xl border border-dark/15 bg-white/80 px-3 py-2 text-slate-900"
+                className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-medium"
               >
                 <span>
                   #{r.position} {r.team.name}
                 </span>
                 <span>
-                  PJ {r.played} • DG {r.goalDiff} • <strong>{r.points} PTS</strong>
+                  PJ {r.played} • <strong>{r.points} PTS</strong>
                 </span>
               </div>
             ))}

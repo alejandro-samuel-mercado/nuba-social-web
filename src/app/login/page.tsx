@@ -37,9 +37,94 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-5">
-        <div className="flex justify-center gap-2">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[var(--theme-background)] text-[var(--theme-dark)]">
+      <div className="w-full max-w-sm space-y-6">
+        {/* Brand Header */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex h-12 w-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white items-center justify-center font-bold text-xl shadow-md shadow-blue-500/25 mb-1">
+            N
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            Nuba Club
+          </h1>
+          <p className="text-xs text-slate-500 max-w-xs mx-auto">
+            Avisos de Fútbol en vivo, estrenos Streaming, Canales TV, sorteos y comunidad privada.
+          </p>
+        </div>
+
+        {/* Login Card */}
+        <GlassCard className="p-6 space-y-5">
+          <div className="space-y-1">
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              Iniciar Sesión
+            </h2>
+            <p className="text-xs text-slate-500">
+              Ingresá con las credenciales provistas por la administración
+            </p>
+          </div>
+
+          {error ? (
+            <div className="rounded-xl border border-rose-200 bg-rose-50/80 p-3 text-xs font-medium text-rose-700 dark:bg-rose-950/40 dark:border-rose-900 dark:text-rose-300">
+              {error}
+            </div>
+          ) : null}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <SacInput
+              label="Usuario o Email"
+              placeholder="ej. admin o usuario1"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              required
+              autoFocus
+            />
+
+            <div className="space-y-1.5">
+              <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                Contraseña
+              </span>
+              <div className="relative">
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="Tu contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-2xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass((v) => !v)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer"
+                  tabIndex={-1}
+                >
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <SacButton
+              type="submit"
+              variant="primary"
+              size="lg"
+              disabled={loading}
+              className="w-full font-semibold"
+            >
+              {loading ? 'Verificando...' : 'Entrar al Club'}
+            </SacButton>
+          </form>
+
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-start gap-2.5 text-[11px] text-slate-500 leading-relaxed">
+            <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+            <span>
+              Acceso exclusivo. Si no contás con una cuenta, contactá al administrador.
+            </span>
+          </div>
+        </GlassCard>
+
+        {/* Theme Swatches */}
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <span className="text-[11px] text-slate-400 font-medium mr-1">Tema:</span>
           {WEB_THEMES.map((t) => (
             <button
               key={t.id}
@@ -47,83 +132,14 @@ export default function LoginPage() {
               onClick={() => setTheme(t.id)}
               title={t.label}
               style={{ backgroundColor: t.swatches[1] }}
-              className={`h-6 w-6 rounded-full border-2 cursor-pointer transition-transform ${
-                theme === t.id ? 'border-dark scale-125' : 'border-white/70 opacity-75'
+              className={`h-4 w-4 rounded-full border transition-all cursor-pointer ${
+                theme === t.id
+                  ? 'ring-2 ring-blue-500 scale-125 border-white'
+                  : 'border-slate-300 opacity-60 hover:opacity-100'
               }`}
             />
           ))}
         </div>
-
-        <div className="text-center space-y-2">
-          <SacBadge variant="primary">Comunidad Privada • Acceso Cerrado</SacBadge>
-          <h1 className="font-display text-4xl font-black text-dark tracking-tight">Nuba Club</h1>
-          <p className="text-sm font-semibold text-dark/70">
-            Fútbol en vivo, estrenos Streaming, canales NubaTV, encuestas y sorteos.
-          </p>
-        </div>
-
-        <GlassCard className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl border-2 border-dark bg-secondary text-white flex items-center justify-center">
-              <Lock className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-dark">Iniciar Sesión</h2>
-              <p className="text-xs font-semibold text-dark/60">
-                Ingresá con tu cuenta asignada por administración
-              </p>
-            </div>
-          </div>
-
-          {error ? (
-            <div className="rounded-2xl border-2 border-red-600 bg-red-100 px-3.5 py-2.5 text-xs font-bold text-red-800">
-              {error}
-            </div>
-          ) : null}
-
-          <form onSubmit={handleSubmit} className="space-y-3.5">
-            <SacInput
-              label="Usuario o Email"
-              placeholder="ej. admin o usuario1"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              required
-            />
-
-            <div className="space-y-1.5">
-              <span className="block text-xs font-black text-dark/90">Contraseña</span>
-              <div className="flex gap-2">
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  placeholder="Tu contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full rounded-2xl border-2 border-dark/70 bg-white/90 px-4 py-2.5 text-sm font-semibold text-dark focus:outline-none focus:border-secondary"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass((v) => !v)}
-                  className="h-11 w-11 shrink-0 rounded-2xl border-2 border-dark/70 bg-surface flex items-center justify-center cursor-pointer"
-                >
-                  {showPass ? <EyeOff className="h-4 w-4 text-dark" /> : <Eye className="h-4 w-4 text-dark" />}
-                </button>
-              </div>
-            </div>
-
-            <SacButton type="submit" variant="secondary" size="lg" disabled={loading} className="w-full">
-              <Sparkles className="h-4 w-4" />
-              {loading ? 'Ingresando...' : 'Entrar al Club'}
-            </SacButton>
-          </form>
-
-          <div className="flex items-start gap-2 rounded-2xl border border-dark/20 bg-surface/80 p-3 text-[11px] font-semibold text-dark/70">
-            <ShieldCheck className="h-4 w-4 shrink-0 text-blue mt-0.5" />
-            <span>
-              No existe registro público ni contenido visible sin iniciar sesión. Si necesitás una cuenta, solicitásela al administrador.
-            </span>
-          </div>
-        </GlassCard>
       </div>
     </div>
   );

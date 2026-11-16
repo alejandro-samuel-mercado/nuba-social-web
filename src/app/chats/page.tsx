@@ -7,10 +7,12 @@ import {
   Lightbulb,
   Lock,
   MessageCircle,
+  Pin,
   Send,
   Smile,
   Trash2,
   Unlock,
+  X,
 } from 'lucide-react';
 import { api, resolveMediaUrl, uploadImageWeb } from '@/lib/api';
 import { timeAgo } from '@/lib/utils';
@@ -69,7 +71,7 @@ function ChatsPageInner() {
       setSummaries(data.rooms || []);
       if (data.stickers) setStickers(data.stickers);
     } catch {
-      // handled in room fetch
+      // handled
     }
   }, []);
 
@@ -226,20 +228,22 @@ function ChatsPageInner() {
 
   if (!settings.chatsEnabled && !isStaff) {
     return (
-      <GlassCard className="text-center py-12 space-y-2">
-        <Lock className="h-10 w-10 mx-auto text-secondary" />
-        <h1 className="text-2xl font-black text-dark">Salas de Chat Desactivadas</h1>
-        <p className="text-sm font-semibold text-dark/70">
-          El administrador pausó temporalmente las salas grupales por tema.
+      <GlassCard className="text-center py-16 space-y-3 max-w-lg mx-auto">
+        <Lock className="h-10 w-10 mx-auto text-slate-400" />
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+          Salas de Chat en Pausa
+        </h1>
+        <p className="text-xs text-slate-500">
+          El administrador pausó temporalmente las salas comunitarias por tema.
         </p>
       </GlassCard>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Selector de Salas */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="space-y-4 max-w-4xl mx-auto">
+      {/* Room Tabs Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {TOPIC_TABS.map((t) => {
           const sum = summaries.find((s) => s.topic === t.id);
           const active = activeTopic === t.id;
@@ -247,98 +251,110 @@ function ChatsPageInner() {
             <button
               key={t.id}
               onClick={() => setActiveTopic(t.id)}
-              className={`rounded-3xl border-[2.5px] border-dark p-3.5 text-left transition-all cursor-pointer ${
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                 active
-                  ? 'bg-primary shadow-[4px_4px_0_0_var(--color-dark)] -translate-y-0.5'
-                  : 'bg-glass hover:bg-surface'
+                  ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800 shadow-xs'
+                  : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:bg-slate-50'
               }`}
             >
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-base font-black text-dark">
-                  {t.emoji} {t.label}
+              <div className="flex items-center justify-between gap-1.5">
+                <span className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <span>{t.emoji}</span>
+                  <span>{t.label}</span>
                 </span>
-                {sum?.config?.isLocked ? <Lock className="h-3.5 w-3.5 text-red-600" /> : null}
+                {sum?.config?.isLocked ? <Lock className="h-3.5 w-3.5 text-rose-500" /> : null}
               </div>
-              <p className="text-[11px] font-bold text-dark/65 mt-1 truncate">
-                {sum ? `${sum.messageCount} mensajes en sala` : 'Entrar al chat'}
+              <p className="text-[11px] text-slate-500 mt-1 truncate">
+                {sum ? `${sum.messageCount} mensajes` : 'Entrar al chat'}
               </p>
             </button>
           );
         })}
       </div>
 
-      {/* Ventana de Chat */}
-      <GlassCard className="p-0 overflow-hidden flex flex-col h-[70vh] min-h-[480px]">
-        {/* Header Sala */}
-        <div className="border-b-2 border-dark/20 bg-surface/90 px-5 py-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-secondary" />
-            <h1 className="font-black text-dark text-base sm:text-lg">
-              Sala {TOPIC_TABS.find((t) => t.id === activeTopic)?.emoji}{' '}
-              {TOPIC_TABS.find((t) => t.id === activeTopic)?.label}
-            </h1>
-            {config?.isLocked ? <SacBadge variant="secondary">Sala Pausada</SacBadge> : null}
+      {/* Main Chat Container */}
+      <GlassCard className="p-0 overflow-hidden flex flex-col h-[72vh] min-h-[500px]">
+        {/* Chat Room Header */}
+        <div className="px-5 py-3.5 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="text-xl">
+              {TOPIC_TABS.find((t) => t.id === activeTopic)?.emoji}
+            </span>
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight">
+                Sala {TOPIC_TABS.find((t) => t.id === activeTopic)?.label}
+              </h2>
+              <p className="text-[11px] text-slate-500">
+                {config?.isLocked ? 'Sala pausada por administración' : 'En vivo • Mensajería comunitaria'}
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {isStaff ? (
-              <>
-                <SacButton
-                  size="sm"
-                  variant="glass"
-                  onClick={() => setEditingNotice((v) => !v)}
-                >
-                  Aviso fijado
-                </SacButton>
-                <SacButton
-                  size="sm"
-                  variant={config?.isLocked ? 'accent' : 'outline'}
-                  onClick={() => void toggleLockRoom()}
-                >
-                  {config?.isLocked ? (
-                    <>
-                      <Unlock className="h-3.5 w-3.5" /> Reabrir
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="h-3.5 w-3.5" /> Pausar sala
-                    </>
-                  )}
-                </SacButton>
-              </>
-            ) : null}
-          </div>
+          {isStaff ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setEditingNotice((v) => !v)}
+                className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer"
+              >
+                {editingNotice ? 'Cancelar' : 'Fijar Aviso'}
+              </button>
+              <button
+                type="button"
+                onClick={() => void toggleLockRoom()}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg border cursor-pointer ${
+                  config?.isLocked
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                    : 'bg-rose-50 text-rose-700 border-rose-300'
+                }`}
+              >
+                {config?.isLocked ? (
+                  <>
+                    <Unlock className="h-3 w-3" /> Reabrir
+                  </>
+                ) : (
+                  <>
+                    <Lock className="h-3 w-3" /> Pausar
+                  </>
+                )}
+              </button>
+            </div>
+          ) : null}
         </div>
 
-        {/* Aviso fijado */}
+        {/* Pinned Notice */}
         {config?.notice ? (
-          <div className="bg-primary/60 border-b border-dark/20 px-5 py-2 text-xs font-extrabold text-dark">
-            📌 {config.notice}
+          <div className="bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200/80 dark:border-amber-900/60 px-5 py-2 text-xs font-medium text-amber-800 dark:text-amber-200 flex items-center gap-2">
+            <Pin className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+            <span>{config.notice}</span>
           </div>
         ) : null}
 
+        {/* Edit Notice Form */}
         {editingNotice && isStaff ? (
-          <form onSubmit={saveNotice} className="border-b border-dark/20 bg-white/80 p-3 flex gap-2">
+          <form onSubmit={saveNotice} className="p-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2">
             <input
               value={noticeDraft}
               onChange={(e) => setNoticeDraft(e.target.value)}
-              placeholder="Aviso fijado para esta sala..."
-              className="flex-1 rounded-full border-2 border-dark/60 px-4 py-1.5 text-xs font-bold text-dark"
+              placeholder="Escribí un aviso fijado para todos los usuarios..."
+              className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100"
             />
-            <SacButton size="sm" type="submit">
+            <SacButton size="sm" type="submit" variant="primary">
               Guardar
             </SacButton>
           </form>
         ) : null}
 
-        {/* Mensajes */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
+        {/* Messages Feed */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
           {loading ? (
-            <p className="text-center text-sm font-bold text-dark/60 py-8">Cargando mensajes...</p>
+            <p className="text-center text-xs text-slate-400 py-8">Cargando mensajes...</p>
           ) : messages.length === 0 ? (
-            <p className="text-center text-sm font-bold text-dark/60 py-8">
-              Todavía no hay mensajes en esta sala. ¡Rompé el hielo!
-            </p>
+            <div className="text-center py-12 space-y-1 text-slate-400">
+              <MessageCircle className="h-8 w-8 mx-auto text-slate-300 dark:text-slate-700" />
+              <p className="text-xs font-medium">Todavía no hay mensajes en esta sala.</p>
+              <p className="text-[11px]">¡Escribí el primer mensaje!</p>
+            </div>
           ) : (
             messages.map((m) => {
               const mine = m.senderId === user?.id;
@@ -348,55 +364,80 @@ function ChatsPageInner() {
 
               return (
                 <div key={m.id} className={`flex items-end gap-2.5 ${mine ? 'flex-row-reverse' : ''}`}>
-                  <SacAvatar src={m.sender.avatarUrl} name={m.sender.displayName} size={34} />
+                  <SacAvatar src={m.sender.avatarUrl} name={m.sender.displayName} size={32} />
                   <div
-                    className={`max-w-[78%] rounded-3xl border-2 border-dark px-4 py-2.5 space-y-1 ${
+                    className={`max-w-[80%] sm:max-w-[70%] rounded-2xl p-3 space-y-1 ${
                       mine
-                        ? 'bg-primary text-dark'
+                        ? 'bg-blue-600 text-white rounded-br-xs shadow-xs'
                         : m.messageType === 'SUGGESTION'
-                          ? 'bg-amber-100 text-slate-900'
-                          : 'bg-white/95 text-slate-900'
+                        ? 'bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-slate-900 dark:text-slate-100 rounded-bl-xs'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-xs'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[11px] font-black">{m.sender.displayName}</span>
+                    {/* Header info */}
+                    <div className="flex items-center justify-between gap-3 text-[10px]">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span className={mine ? 'text-blue-100' : 'text-slate-900 dark:text-slate-100'}>
+                          {m.sender.displayName}
+                        </span>
                         {isAuthorStaff ? (
-                          <span className="rounded-full bg-dark px-1.5 py-0.2 text-[9px] font-black text-white">
+                          <span
+                            className={`rounded-full px-1.5 py-0.2 text-[9px] font-bold ${
+                              mine ? 'bg-blue-800 text-white' : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                            }`}
+                          >
                             STAFF
                           </span>
                         ) : null}
                         {m.messageType === 'SUGGESTION' ? (
-                          <span className="rounded-full bg-secondary px-1.5 py-0.2 text-[9px] font-black text-white">
+                          <span
+                            className={`rounded-full px-1.5 py-0.2 text-[9px] font-bold ${
+                              mine ? 'bg-amber-400 text-slate-950' : 'bg-amber-200 text-amber-950'
+                            }`}
+                          >
                             SUGERENCIA
                           </span>
                         ) : null}
                       </div>
-                      <span className="text-[10px] font-bold opacity-60">{timeAgo(m.createdAt)}</span>
+                      <span className={mine ? 'text-blue-200' : 'text-slate-400'}>
+                        {timeAgo(m.createdAt)}
+                      </span>
                     </div>
 
+                    {/* Sticker */}
                     {m.messageType === 'STICKER' && stickerObj ? (
                       <div className="py-1 flex items-center gap-2">
-                        <span className="text-4xl">{stickerObj.emoji}</span>
-                        <span className="text-xs font-black uppercase tracking-wider">{stickerObj.label}</span>
+                        <span className="text-3xl">{stickerObj.emoji}</span>
+                        <span className="text-xs font-bold uppercase tracking-wider opacity-80">
+                          {stickerObj.label}
+                        </span>
                       </div>
                     ) : null}
 
+                    {/* Image */}
                     {m.messageType === 'IMAGE' && imgResolved ? (
                       <img
                         src={imgResolved}
                         alt="Chat"
-                        className="rounded-2xl border border-dark/40 max-h-60 object-cover"
+                        className="rounded-xl max-h-56 object-cover border border-black/10 mt-1"
                       />
                     ) : null}
 
-                    {m.content ? <p className="text-sm font-semibold whitespace-pre-wrap">{m.content}</p> : null}
+                    {/* Text */}
+                    {m.content ? (
+                      <p className="text-xs sm:text-sm font-normal leading-relaxed whitespace-pre-wrap">
+                        {m.content}
+                      </p>
+                    ) : null}
 
+                    {/* Staff / Mine Delete */}
                     {(mine || isStaff) ? (
-                      <div className="flex justify-end">
+                      <div className="flex justify-end pt-0.5">
                         <button
                           onClick={() => void handleDeleteMsg(m.id)}
-                          className="text-[10px] font-bold text-red-600 hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                          className={`text-[10px] font-medium opacity-60 hover:opacity-100 hover:underline cursor-pointer inline-flex items-center gap-0.5 ${
+                            mine ? 'text-white' : 'text-rose-600'
+                          }`}
                         >
                           <Trash2 className="h-3 w-3" /> Borrar
                         </button>
@@ -410,15 +451,15 @@ function ChatsPageInner() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Barra de Stickers */}
+        {/* Sticker Picker Drawer */}
         {showStickers ? (
-          <div className="border-t border-dark/20 bg-surface p-3 flex flex-wrap gap-2">
+          <div className="p-3 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-wrap gap-2">
             {stickers.map((s) => (
               <button
                 key={s.code}
                 type="button"
                 onClick={() => void sendSticker(s.code)}
-                className="inline-flex items-center gap-1.5 rounded-2xl border-2 border-dark/50 bg-white px-3 py-1.5 text-xs font-black text-slate-900 hover:bg-primary cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 text-xs font-medium text-slate-800 dark:text-slate-200 cursor-pointer shadow-2xs"
               >
                 <span className="text-lg">{s.emoji}</span>
                 <span>{s.label}</span>
@@ -427,16 +468,18 @@ function ChatsPageInner() {
           </div>
         ) : null}
 
-        {/* Composer */}
-        <div className="border-t-2 border-dark/20 bg-surface/90 p-3 space-y-2">
-          {error ? <p className="text-xs font-black text-red-600 px-2">{error}</p> : null}
+        {/* Chat Input Bar */}
+        <div className="p-3 border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
+          {error ? <p className="text-xs text-rose-600 font-medium px-1">{error}</p> : null}
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => setShowStickers((v) => !v)}
-              className={`inline-flex items-center gap-1 rounded-full border-2 px-3 py-1 text-xs font-black cursor-pointer ${
-                showStickers ? 'bg-primary border-dark text-dark' : 'bg-white border-dark/30 text-slate-800'
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                showStickers
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
+                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
               }`}
             >
               <Smile className="h-3.5 w-3.5" /> Stickers
@@ -445,11 +488,13 @@ function ChatsPageInner() {
             <button
               type="button"
               onClick={() => setAsSuggestion((v) => !v)}
-              className={`inline-flex items-center gap-1 rounded-full border-2 px-3 py-1 text-xs font-black cursor-pointer ${
-                asSuggestion ? 'bg-secondary border-dark text-white' : 'bg-white border-dark/30 text-slate-800'
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                asSuggestion
+                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-semibold'
+                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
               }`}
             >
-              <Lightbulb className="h-3.5 w-3.5" /> Sugerencia rápida
+              <Lightbulb className="h-3.5 w-3.5" /> Sugerencia
             </button>
 
             {(settings.chatImagesEnabled || isStaff) ? (
@@ -465,34 +510,32 @@ function ChatsPageInner() {
                   type="button"
                   disabled={uploadingImg}
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-1 rounded-full border-2 border-dark/30 bg-white px-3 py-1 text-xs font-black text-slate-800 hover:bg-primary cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 cursor-pointer disabled:opacity-50"
                 >
                   <ImageIcon className="h-3.5 w-3.5" />
                   {uploadingImg ? 'Subiendo...' : 'Imagen'}
                 </button>
               </>
-            ) : (
-              <span className="text-[11px] font-bold text-dark/55">Imágenes bloqueadas por Admin</span>
-            )}
+            ) : null}
           </div>
 
-          <form onSubmit={sendMessage} className="flex gap-2">
+          <form onSubmit={sendMessage} className="flex items-center gap-2">
             <input
               value={text}
               onChange={(e) => setText(e.target.value)}
               disabled={(config?.isLocked && !isStaff) || sending}
               placeholder={
                 config?.isLocked && !isStaff
-                  ? 'Sala pausada temporalmente por administración...'
+                  ? 'Esta sala se encuentra pausada temporalmente...'
                   : asSuggestion
-                    ? 'Escribí tu sugerencia para este tema...'
-                    : `Escribí en ${TOPIC_TABS.find((t) => t.id === activeTopic)?.label}...`
+                  ? 'Escribí tu sugerencia para este tema...'
+                  : `Escribí en ${TOPIC_TABS.find((t) => t.id === activeTopic)?.label}...`
               }
-              className="flex-1 rounded-full border-2 border-dark bg-white px-4 py-2 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none disabled:opacity-60"
+              className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
             <SacButton
               type="submit"
-              variant="secondary"
+              variant="primary"
               disabled={(config?.isLocked && !isStaff) || sending || !text.trim()}
             >
               <Send className="h-4 w-4" />
@@ -506,7 +549,7 @@ function ChatsPageInner() {
 
 export default function ChatsPage() {
   return (
-    <Suspense fallback={<GlassCard className="text-center py-12 font-bold">Cargando salas...</GlassCard>}>
+    <Suspense fallback={<GlassCard className="text-center py-12 text-sm text-slate-500">Cargando salas...</GlassCard>}>
       <ChatsPageInner />
     </Suspense>
   );

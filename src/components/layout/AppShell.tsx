@@ -1,30 +1,46 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   BarChart3,
   Bell,
+  Film,
+  Flame,
   Gift,
+  Hash,
   Home,
   LifeBuoy,
   MessageCircle,
   Palette,
+  Radio,
   Settings,
   Shield,
+  Sparkles,
   Trophy,
+  Tv,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/AuthProvider';
 import { WEB_THEMES, useTheme } from '@/providers/ThemeProvider';
 import { SacAvatar, SacBadge, SacButton } from '../ui/SacPrimitives';
+import { CommunityPulseSidebar } from './CommunityPulseSidebar';
+import { ContextualExplorerBar } from './ContextualExplorerBar';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading, settings, unreadNotifications, unreadDirectMessages, isStaff, activeLiveDraw, dismissLiveDraw } =
-    useAuth();
+  const {
+    user,
+    loading,
+    settings,
+    unreadNotifications,
+    unreadDirectMessages,
+    isStaff,
+    activeLiveDraw,
+    dismissLiveDraw,
+  } = useAuth();
   const { theme, setTheme } = useTheme();
   const [drawPhase, setDrawPhase] = useState<'SPIN' | 'DONE'>('SPIN');
   const [ticker, setTicker] = useState('');
@@ -63,178 +79,237 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="sac-card rounded-3xl px-8 py-6 text-center space-y-2">
-          <div className="font-display text-2xl font-black text-dark">Nuba Club</div>
-          <p className="text-sm font-semibold text-dark/60">Verificando sesión privada...</p>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-[var(--theme-background)]">
+        <div className="app-card max-w-sm w-full p-8 text-center space-y-3">
+          <div className="h-12 w-12 mx-auto rounded-full bg-gradient-to-tr from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white flex items-center justify-center font-bold text-lg shadow-sm animate-pulse">
+            N
+          </div>
+          <h2 className="text-base font-bold text-[var(--theme-dark)]">
+            Nuba Club
+          </h2>
+          <p className="text-xs text-[var(--theme-muted)]">Conectando a la red privada...</p>
         </div>
       </div>
     );
   }
 
-  const navItems = [
-    { href: '/feed', label: 'Avisos', icon: Home },
-    { href: '/chats', label: 'Chats', icon: MessageCircle },
+  // Global Primary App Shortcuts (Rail 1)
+  const circularShortcuts = [
+    { href: '/feed', label: 'Avisos & Feed', icon: Home },
+    { href: '/chats', label: 'Salas de Chat', icon: MessageCircle },
     { href: '/polls', label: 'Encuestas', icon: BarChart3 },
-    { href: '/giveaways', label: 'Sorteos', icon: Gift },
-    { href: '/support', label: 'Admin DM', icon: LifeBuoy, badge: unreadDirectMessages },
+    { href: '/giveaways', label: 'Sorteos en Vivo', icon: Gift },
+    { href: '/support', label: 'Admin DM & Soporte', icon: LifeBuoy, badge: unreadDirectMessages },
   ];
 
   return (
-    <div className="min-h-screen pb-24 md:pb-12">
-      {/* Mobile Compact Header (< md) */}
-      <header className="flex md:hidden sticky top-3 z-40 mx-auto w-[95%] items-center justify-between rounded-full sac-card px-4 py-2 mt-3">
-        <Link href="/feed" className="flex items-center gap-2">
-          <span className="h-8 w-8 rounded-xl border-2 border-dark bg-primary text-dark flex items-center justify-center font-black text-base">
-            N
-          </span>
-          <span className="font-display text-base font-black tracking-tight text-dark">
-            {settings.appName}
-          </span>
-        </Link>
-
-        <div className="flex items-center gap-1.5">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[var(--theme-background)] text-[var(--theme-dark)]">
+      {/* =========================================================================
+          TIER 1: ULTRA-MODERN CIRCULAR QUICK-ACCESS RAIL (Desktop Only, 68px)
+          ========================================================================= */}
+      <aside className="hidden lg:flex flex-col items-center justify-between w-17 shrink-0 border-r border-[var(--theme-border)] bg-[var(--theme-surface)] py-4 z-40 sticky top-0 h-screen">
+        <div className="flex flex-col items-center gap-3">
+          {/* Circular Brand Core Icon */}
           <Link
-            href="/support"
-            className="relative h-8 w-8 rounded-full border-2 border-dark/40 bg-surface flex items-center justify-center"
-            title="Admin DM & Sugerencias"
+            href="/feed"
+            title="Nuba Club VIP"
+            className="group relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white font-bold text-lg shadow-sm hover:rounded-xl transition-all cursor-pointer"
           >
-            <LifeBuoy className="h-3.5 w-3.5 text-dark" />
-            {unreadDirectMessages > 0 ? (
-              <span className="absolute -top-1 -right-1 rounded-full bg-red-600 px-1 text-[9px] font-black text-white">
-                {unreadDirectMessages}
-              </span>
+            <span>N</span>
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-[var(--theme-surface)]" />
+          </Link>
+
+          <div className="w-8 h-[1.5px] bg-[var(--theme-border)] my-1" />
+
+          {/* Circular Global Nav Icons */}
+          <div className="flex flex-col items-center gap-2.5">
+            {circularShortcuts.map((item) => {
+              const Icon = item.icon;
+              const active = pathname === item.href || (item.href !== '/feed' && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={item.label}
+                  className={cn(
+                    'relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 cursor-pointer',
+                    active
+                      ? 'bg-[var(--theme-primary)] text-white shadow-xs scale-105'
+                      : 'text-[var(--theme-muted)] hover:text-[var(--theme-dark)] hover:bg-[var(--theme-surface-hover)] hover:scale-105'
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.badge && item.badge > 0 ? (
+                    <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-rose-600 text-white font-bold text-[9px] flex items-center justify-center border-2 border-[var(--theme-surface)]">
+                      {item.badge}
+                    </span>
+                  ) : null}
+                </Link>
+              );
+            })}
+
+            {isStaff ? (
+              <Link
+                href="/admin"
+                title="Panel de Control Admin"
+                className={cn(
+                  'relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 cursor-pointer',
+                  pathname.startsWith('/admin')
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
+                    : 'text-[var(--theme-muted)] hover:text-[var(--theme-dark)] hover:bg-[var(--theme-surface-hover)]'
+                )}
+              >
+                <Shield className="h-5 w-5 text-indigo-500" />
+              </Link>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Bottom Actions: Theme Switcher & User Avatar */}
+        <div className="flex flex-col items-center gap-3">
+          {/* Notifications shortcut */}
+          <Link
+            href="/notifications"
+            title="Centro de Alertas"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full text-[var(--theme-muted)] hover:text-[var(--theme-dark)] hover:bg-[var(--theme-surface-hover)] transition-colors cursor-pointer"
+          >
+            <Bell className="h-4 w-4" />
+            {unreadNotifications > 0 ? (
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-600" />
             ) : null}
           </Link>
 
+          {/* Theme Dial */}
           <button
-            title="Rotar Tema Rápido"
+            title="Cambiar Paleta de Color"
             onClick={() => {
               const idx = WEB_THEMES.findIndex((t) => t.id === theme);
               const next = WEB_THEMES[(idx + 1) % WEB_THEMES.length];
               setTheme(next.id);
             }}
-            className="h-8 w-8 rounded-full border-2 border-dark/40 bg-surface flex items-center justify-center cursor-pointer"
+            className="h-9 w-9 rounded-full bg-[var(--theme-surface-hover)] flex items-center justify-center text-[var(--theme-dark)] transition-transform active:rotate-45 cursor-pointer shadow-2xs border border-[var(--theme-border)]"
           >
-            <Palette className="h-3.5 w-3.5 text-dark" />
+            <Palette className="h-4 w-4" />
+          </button>
+
+          {/* User Avatar with Presence Ring */}
+          <Link
+            href="/settings"
+            title={`${user.displayName} (@${user.username})`}
+            className="relative group cursor-pointer"
+          >
+            <div className="p-0.5 rounded-full ring-2 ring-emerald-500/80 group-hover:ring-[var(--theme-primary)] transition-all">
+              <SacAvatar src={user.avatarUrl} name={user.displayName} size={32} />
+            </div>
+            <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-[var(--theme-surface)]" />
+          </Link>
+        </div>
+      </aside>
+
+      {/* =========================================================================
+          TIER 2: CONTEXTUAL EXPLORER BAR (Options, categories, filters for CURRENT page!)
+          ========================================================================= */}
+      <aside className="hidden lg:flex flex-col justify-between w-60 shrink-0 border-r border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sticky top-0 h-screen overflow-y-auto scrollbar-none z-30">
+        <Suspense fallback={<div className="text-xs text-[var(--theme-muted)]">Cargando opciones...</div>}>
+          <ContextualExplorerBar />
+        </Suspense>
+
+        {/* Ambient Network Status Indicator */}
+        <div className="p-3 rounded-xl bg-[var(--theme-surface-hover)] border border-[var(--theme-border)] space-y-1 mt-4">
+          <div className="flex items-center justify-between text-[11px] font-medium text-[var(--theme-muted)]">
+            <span className="flex items-center gap-1.5 text-[var(--theme-dark)] font-semibold">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" /> Red Nuba
+            </span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold">100% OK</span>
+          </div>
+          <p className="text-[10px] text-[var(--theme-muted)]">
+            Fútbol, TV & Streaming conectados.
+          </p>
+        </div>
+      </aside>
+
+      {/* =========================================================================
+          MOBILE TOP BAR (< lg)
+          ========================================================================= */}
+      <header className="flex lg:hidden sticky top-0 z-40 items-center justify-between px-4 py-2.5 bg-[var(--theme-surface)]/95 backdrop-blur-md border-b border-[var(--theme-border)]">
+        <Link href="/feed" className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white flex items-center justify-center font-bold text-sm shadow-xs">
+            N
+          </div>
+          <span className="font-bold text-sm tracking-tight text-[var(--theme-dark)]">
+            {settings.appName || 'Nuba Club'}
+          </span>
+        </Link>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const idx = WEB_THEMES.findIndex((t) => t.id === theme);
+              const next = WEB_THEMES[(idx + 1) % WEB_THEMES.length];
+              setTheme(next.id);
+            }}
+            className="p-1.5 rounded-full hover:bg-[var(--theme-surface-hover)] text-[var(--theme-dark)] cursor-pointer"
+            title="Cambiar tema"
+          >
+            <Palette className="h-4 w-4" />
           </button>
 
           <Link
             href="/notifications"
-            className="relative h-8 w-8 rounded-full border-2 border-dark/40 bg-surface flex items-center justify-center"
+            className="relative p-1.5 rounded-full hover:bg-[var(--theme-surface-hover)] text-[var(--theme-dark)]"
             title="Notificaciones"
           >
-            <Bell className="h-3.5 w-3.5 text-dark" />
+            <Bell className="h-5 w-5" />
             {unreadNotifications > 0 ? (
-              <span className="absolute -top-1 -right-1 rounded-full bg-red-600 px-1 text-[9px] font-black text-white">
-                {unreadNotifications}
-              </span>
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-600" />
             ) : null}
           </Link>
 
           <Link href="/settings">
-            <SacAvatar src={user.avatarUrl} name={user.displayName} size={32} />
+            <SacAvatar src={user.avatarUrl} name={user.displayName} size={30} />
           </Link>
         </div>
       </header>
 
-      {/* TopNav Flotante estilo SAC */}
-      <header className="hidden md:flex sticky top-4 z-40 mx-auto w-[95%] max-w-6xl items-center justify-between rounded-full sac-card px-5 py-2.5 mt-4">
-        <Link href="/feed" className="flex items-center gap-2.5">
-          <span className="h-9 w-9 rounded-2xl border-2 border-dark bg-primary text-dark flex items-center justify-center font-black text-lg">
-            N
-          </span>
-          <span className="font-display text-xl font-black tracking-tight text-dark">
-            {settings.appName}
-          </span>
-        </Link>
-
-        <nav className="flex items-center gap-1.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'relative flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold transition-all',
-                  active
-                    ? 'bg-secondary text-white border-2 border-dark shadow-[2px_2px_0_0_var(--color-dark)]'
-                    : 'text-dark/80 hover:bg-surface'
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                <span>{item.label}</span>
-                {item.badge && item.badge > 0 ? (
-                  <span className="ml-1 rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] text-white font-black">
-                    {item.badge}
-                  </span>
-                ) : null}
-              </Link>
-            );
-          })}
-          {isStaff ? (
-            <Link
-              href="/admin"
-              className={cn(
-                'flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-black border-2 border-dark transition-all',
-                pathname.startsWith('/admin')
-                  ? 'bg-dark text-white'
-                  : 'bg-primary text-dark hover:brightness-95'
-              )}
-            >
-              <Shield className="h-4 w-4" />
-              <span>Admin</span>
-            </Link>
+      {/* =========================================================================
+          TIER 3: CENTER STREAM + TIER 4: RIGHT COMMUNITY PULSE (Full Width Harmony)
+          ========================================================================= */}
+      <div className="flex-1 min-w-0 flex justify-between gap-6 px-3 sm:px-6 py-5 overflow-x-hidden">
+        {/* Center Main Workstation */}
+        <main className="flex-1 min-w-0 pb-20 lg:pb-6">
+          {/* Optional Global Announcement */}
+          {settings.announcementBanner ? (
+            <div className="mb-5 bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-xs flex items-center justify-between">
+              <span>📢 {settings.announcementBanner}</span>
+            </div>
           ) : null}
-        </nav>
 
-        <div className="flex items-center gap-2">
-          <button
-            title="Rotar Tema Rápido"
-            onClick={() => {
-              const idx = WEB_THEMES.findIndex((t) => t.id === theme);
-              const next = WEB_THEMES[(idx + 1) % WEB_THEMES.length];
-              setTheme(next.id);
-            }}
-            className="h-9 w-9 rounded-full border-2 border-dark/40 bg-surface flex items-center justify-center hover:bg-primary transition-colors cursor-pointer"
-          >
-            <Palette className="h-4 w-4 text-dark" />
-          </button>
+          {children}
+        </main>
 
-          <Link
-            href="/notifications"
-            className="relative h-9 w-9 rounded-full border-2 border-dark/40 bg-surface flex items-center justify-center hover:bg-primary transition-colors"
-          >
-            <Bell className="h-4 w-4 text-dark" />
-            {unreadNotifications > 0 ? (
-              <span className="absolute -top-1 -right-1 rounded-full bg-red-600 px-1.5 text-[10px] font-black text-white">
-                {unreadNotifications}
-              </span>
-            ) : null}
-          </Link>
-
-          <Link href="/settings" className="flex items-center gap-2 pl-1">
-            <SacAvatar src={user.avatarUrl} name={user.displayName} size={36} />
-          </Link>
+        {/* Right Community Pulse Sidebar (Desktop XL and up, fills the empty side!) */}
+        <div className="hidden xl:block">
+          <CommunityPulseSidebar />
         </div>
-      </header>
+      </div>
 
-      {/* Banner Global */}
-      {settings.announcementBanner ? (
-        <div className="mx-auto mt-4 w-[95%] max-w-6xl rounded-full border-2 border-dark bg-primary px-5 py-2 text-center text-xs font-black text-dark shadow-[3px_3px_0_0_var(--color-dark)]">
-          ✨ {settings.announcementBanner}
-        </div>
-      ) : null}
-
-      <main className="mx-auto w-[95%] max-w-6xl pt-5">{children}</main>
-
-      {/* Mobile Bottom Pill Bar estilo SAC */}
-      <nav className="md:hidden fixed bottom-3 left-3 right-3 z-40 rounded-full sac-card px-2 py-2 flex items-center justify-around">
+      {/* =========================================================================
+          MOBILE BOTTOM DOCK (< lg)
+          ========================================================================= */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around py-2 bg-[var(--theme-surface)]/95 backdrop-blur-md border-t border-[var(--theme-border)]">
         {[
-          ...navItems.slice(0, 4),
-          isStaff ? { href: '/admin', label: 'Admin', icon: Shield } : { href: '/settings', label: 'Ajustes', icon: Settings },
+          { href: '/feed', label: 'Avisos', icon: Home },
+          { href: '/chats', label: 'Chats', icon: MessageCircle },
+          { href: '/polls', label: 'Encuestas', icon: BarChart3 },
+          { href: '/giveaways', label: 'Sorteos', icon: Gift },
+          isStaff
+            ? { href: '/admin', label: 'Admin', icon: Shield }
+            : {
+                href: '/support',
+                label: 'Soporte',
+                icon: LifeBuoy,
+                badge: unreadDirectMessages,
+              },
         ].map((item) => {
           const Icon = item.icon;
           const active = pathname.startsWith(item.href);
@@ -243,39 +318,70 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center justify-center rounded-full px-3 py-1.5 text-[10px] font-black transition-all',
-                active ? 'bg-secondary text-white border-2 border-dark' : 'text-dark/75'
+                'relative flex flex-col items-center justify-center py-1 px-3 rounded-lg text-[10px] font-semibold transition-colors',
+                active
+                  ? 'text-[var(--theme-primary)] font-bold'
+                  : 'text-[var(--theme-muted)] hover:text-[var(--theme-dark)]'
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-5 w-5 mb-0.5" />
               <span>{item.label}</span>
+              {(item as any).badge && (item as any).badge > 0 ? (
+                <span className="absolute top-0 right-2 h-2 w-2 rounded-full bg-rose-600" />
+              ) : null}
             </Link>
           );
         })}
       </nav>
 
-      {/* Ruleta En Vivo Modal Global */}
+      {/* =========================================================================
+          LIVE DRAW MODAL
+          ========================================================================= */}
       {activeLiveDraw ? (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="sac-card rounded-[2.5rem] p-6 max-w-md w-full text-center space-y-4 bg-white">
-            <SacBadge variant="secondary">🎁 Sorteo en Vivo</SacBadge>
-            <h2 className="text-2xl font-black text-dark">{activeLiveDraw.title}</h2>
-            <p className="text-sm font-bold text-dark/70">Premio: {activeLiveDraw.prizeDescription}</p>
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="app-card max-w-md w-full p-6 text-center space-y-4 shadow-xl border-[var(--theme-border)] bg-[var(--theme-surface)] animate-in fade-in zoom-in-95 duration-200">
+            <SacBadge variant="accent">🎁 Sorteo en Vivo</SacBadge>
+            <h2 className="text-xl font-bold text-[var(--theme-dark)]">
+              {activeLiveDraw.title}
+            </h2>
+            <p className="text-xs text-[var(--theme-muted)]">
+              Premio: {activeLiveDraw.prizeDescription}
+            </p>
+
             {drawPhase === 'SPIN' ? (
-              <div className="rounded-3xl border-2 border-dark bg-surface p-6 space-y-2">
-                <p className="text-xs font-black uppercase text-dark/60">Mezclando participantes...</p>
-                <p className="text-xl font-black text-secondary">{ticker}</p>
+              <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface-hover)] p-6 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-primary)]">
+                  Mezclando participantes...
+                </p>
+                <p className="text-lg font-bold text-[var(--theme-dark)] animate-pulse">
+                  {ticker}
+                </p>
               </div>
             ) : (
-              <div className="rounded-3xl border-[3px] border-dark bg-primary p-6 flex flex-col items-center gap-2">
-                <Trophy className="h-10 w-10 text-dark" />
-                <span className="text-xs font-black uppercase tracking-wider text-dark">¡GANADOR OFICIAL!</span>
-                <SacAvatar src={activeLiveDraw.winner.avatarUrl} name={activeLiveDraw.winner.displayName} size={64} />
-                <p className="text-xl font-black text-dark">{activeLiveDraw.winner.displayName}</p>
-                <p className="text-sm font-bold text-dark/70">@{activeLiveDraw.winner.username}</p>
+              <div className="rounded-xl border border-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/40 dark:border-emerald-800 p-6 flex flex-col items-center gap-2">
+                <Trophy className="h-8 w-8 text-amber-500" />
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                  ¡Ganador Oficial!
+                </span>
+                <SacAvatar
+                  src={activeLiveDraw.winner.avatarUrl}
+                  name={activeLiveDraw.winner.displayName}
+                  size={56}
+                />
+                <p className="text-lg font-bold text-[var(--theme-dark)]">
+                  {activeLiveDraw.winner.displayName}
+                </p>
+                <p className="text-xs text-[var(--theme-muted)]">
+                  @{activeLiveDraw.winner.username}
+                </p>
               </div>
             )}
-            <SacButton variant="glass" onClick={dismissLiveDraw} className="w-full">
+
+            <SacButton
+              variant="glass"
+              onClick={dismissLiveDraw}
+              className="w-full"
+            >
               Cerrar
             </SacButton>
           </div>

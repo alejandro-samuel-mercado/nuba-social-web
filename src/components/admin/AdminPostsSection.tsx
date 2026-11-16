@@ -73,7 +73,7 @@ export function AdminPostsSection() {
   const [selectedChannels, setSelectedChannels] = useState<NubaChannel[]>([]);
   const [loadingTv, setLoadingTv] = useState(false);
 
-  // Moderación de posts existentes
+  // Moderation
   const [posts, setPosts] = useState<Post[]>([]);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -295,7 +295,7 @@ export function AdminPostsSection() {
       setTagsText('');
       setMetadata(null);
       setIsPinned(false);
-      setMsg('Publicación creada y notificada.');
+      setMsg('Publicación creada y notificada correctamente.');
       await loadPosts();
     } catch (e: any) {
       setErr(e?.message || 'Error al publicar.');
@@ -323,23 +323,23 @@ export function AdminPostsSection() {
   return (
     <div className="space-y-6">
       {msg ? (
-        <GlassCard className="p-3 bg-emerald-100 border-emerald-700 text-emerald-900 text-sm font-bold">
+        <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold">
           {msg}
-        </GlassCard>
+        </div>
       ) : null}
       {err ? (
-        <GlassCard className="p-3 bg-red-100 border-red-600 text-red-800 text-sm font-bold">
+        <div className="p-3 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold">
           {err}
-        </GlassCard>
+        </div>
       ) : null}
 
-      <GlassCard className="space-y-4">
-        <h2 className="text-xl font-black text-dark flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-secondary" /> Creador Inteligente de Publicaciones
+      <GlassCard className="p-5 space-y-4">
+        <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-indigo-600" /> Creador Inteligente de Publicaciones
         </h2>
 
-        {/* Selector de Tema */}
-        <div className="flex flex-wrap gap-2">
+        {/* Topic Selector */}
+        <div className="flex flex-wrap gap-1.5">
           {(
             [
               { id: 'STREAMING', label: '🎬 Streaming (API + TMDB)' },
@@ -352,10 +352,10 @@ export function AdminPostsSection() {
               key={t.id}
               type="button"
               onClick={() => setTopic(t.id)}
-              className={`rounded-full border-2 px-4 py-1.5 text-xs font-black cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
                 topic === t.id
-                  ? 'bg-secondary text-white border-dark'
-                  : 'bg-surface text-dark border-dark/30'
+                  ? 'bg-blue-600 text-white shadow-2xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
               {t.label}
@@ -363,12 +363,12 @@ export function AdminPostsSection() {
           ))}
         </div>
 
-        {/* Asistente StreamFlex + NexoPlay + TMDB */}
+        {/* Streaming Importer */}
         {topic === 'STREAMING' ? (
-          <div className="rounded-3xl border-2 border-dark/30 bg-surface/80 p-4 space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Film className="h-4 w-4 text-secondary" />
-              <span className="text-xs font-black uppercase text-dark">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Film className="h-4 w-4 text-indigo-600" />
+              <span className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
                 Importar catálogo (Flex-Streaming / NexoPlay + TMDB)
               </span>
             </div>
@@ -379,7 +379,7 @@ export function AdminPostsSection() {
                   setStreamSource(e.target.value as any);
                   setStreamPage(1);
                 }}
-                className="rounded-full border-2 border-dark/50 bg-white px-3 py-1.5 text-xs font-black text-slate-900"
+                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200"
               >
                 <option value="streamflex">Flex-Streaming API</option>
                 <option value="nexoplay">NexoPlay API</option>
@@ -392,10 +392,10 @@ export function AdminPostsSection() {
                       key={tf}
                       type="button"
                       onClick={() => setStreamTypeFilter(tf)}
-                      className={`rounded-full border-2 px-2.5 py-1 text-[11px] font-black cursor-pointer ${
+                      className={`rounded-lg px-2.5 py-1 text-xs font-medium cursor-pointer ${
                         streamTypeFilter === tf
-                          ? 'bg-primary text-dark border-dark'
-                          : 'bg-white text-slate-700 border-dark/30'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                       }`}
                     >
                       {tf === 'ALL' ? 'Todo' : tf === 'MOVIE' ? 'Películas' : 'Series'}
@@ -413,56 +413,28 @@ export function AdminPostsSection() {
                   }
                 }}
                 placeholder="Buscar película, serie o anime..."
-                className="flex-1 min-w-[180px] rounded-full border-2 border-dark/50 bg-white px-4 py-1.5 text-xs font-bold text-slate-900"
+                className="flex-1 min-w-[180px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"
               />
               <SacButton type="button" size="sm" variant="primary" onClick={() => void searchExternalStreaming(1)}>
                 <Search className="h-3.5 w-3.5" /> {loadingStream ? 'Buscando...' : 'Consultar'}
               </SacButton>
             </div>
 
-            {streamSource !== 'tmdb' && streamResults.length > 0 ? (
-              <div className="flex items-center justify-between gap-2 text-xs font-bold text-dark">
-                <span>
-                  Página {streamPage} de {streamTotalPages}
-                </span>
-                <div className="flex gap-1.5">
-                  <SacButton
-                    type="button"
-                    size="sm"
-                    variant="glass"
-                    disabled={loadingStream || streamPage <= 1}
-                    onClick={() => void searchExternalStreaming(streamPage - 1)}
-                  >
-                    Anterior
-                  </SacButton>
-                  <SacButton
-                    type="button"
-                    size="sm"
-                    variant="glass"
-                    disabled={loadingStream || streamPage >= streamTotalPages}
-                    onClick={() => void searchExternalStreaming(streamPage + 1)}
-                  >
-                    Siguiente
-                  </SacButton>
-                </div>
-              </div>
-            ) : null}
-
             {streamResults.length > 0 ? (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-72 overflow-y-auto pt-1">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto pt-1">
                 {streamResults.map((it, idx) => (
                   <button
                     key={`${it.externalId || it.tmdbId}-${idx}`}
                     type="button"
                     onClick={() => void pickExternalItem(it)}
-                    className="flex items-center gap-2.5 rounded-2xl border-2 border-dark/30 bg-white p-2 text-left hover:border-secondary cursor-pointer"
+                    className="flex items-center gap-2.5 p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-left hover:border-blue-500 cursor-pointer transition-colors shadow-2xs"
                   >
                     {it.posterUrl ? (
-                      <img src={it.posterUrl} alt={it.title} className="h-14 w-10 rounded-lg object-cover shrink-0" />
+                      <img src={it.posterUrl} alt={it.title} className="h-12 w-9 rounded-md object-cover shrink-0" />
                     ) : null}
                     <div className="min-w-0">
-                      <div className="text-xs font-black text-slate-900 truncate">{it.title}</div>
-                      <div className="text-[10px] font-bold text-slate-500">
+                      <div className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{it.title}</div>
+                      <div className="text-[10px] text-slate-500">
                         {it.mediaType} {it.releaseYear ? `• ${it.releaseYear}` : ''}
                       </div>
                     </div>
@@ -473,23 +445,27 @@ export function AdminPostsSection() {
           </div>
         ) : null}
 
-        {/* Asistente NubaTV API */}
+        {/* NubaTV Importer */}
         {topic === 'TV_CHANNELS' ? (
-          <div className="rounded-3xl border-2 border-dark/30 bg-surface/80 p-4 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-black uppercase text-dark flex items-center gap-1.5">
-                <Tv className="h-4 w-4 text-blue" /> Extractor NubaTV API
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <Tv className="h-4 w-4 text-cyan-600" /> Extractor NubaTV API
               </span>
-              <SacButton type="button" size="sm" variant="glass" onClick={() => void loadNubaTvSummary()}>
+              <button
+                type="button"
+                onClick={() => void loadNubaTvSummary()}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100"
+              >
                 Cargar Listas & Categorías
-              </SacButton>
+              </button>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <select
                 value={selectedPlaylist}
                 onChange={(e) => setSelectedPlaylist(e.target.value)}
-                className="rounded-full border-2 border-dark/50 bg-white px-3 py-1.5 text-xs font-bold text-slate-900"
+                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 font-medium"
               >
                 <option value="">Todas las playlists</option>
                 {playlists.map((p: any) => (
@@ -502,7 +478,7 @@ export function AdminPostsSection() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="rounded-full border-2 border-dark/50 bg-white px-3 py-1.5 text-xs font-bold text-slate-900"
+                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 font-medium"
               >
                 <option value="">Todas las categorías</option>
                 {categories.map((c: any) => (
@@ -516,7 +492,7 @@ export function AdminPostsSection() {
                 value={tvSearch}
                 onChange={(e) => setTvSearch(e.target.value)}
                 placeholder="Buscar canal..."
-                className="flex-1 min-w-[160px] rounded-full border-2 border-dark/50 bg-white px-4 py-1.5 text-xs font-bold text-slate-900"
+                className="flex-1 min-w-[160px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"
               />
 
               <SacButton type="button" size="sm" variant="primary" onClick={() => void searchNubaTvChannels()}>
@@ -526,7 +502,7 @@ export function AdminPostsSection() {
 
             {tvChannels.length > 0 ? (
               <div className="space-y-2">
-                <div className="grid sm:grid-cols-3 gap-2 max-h-56 overflow-y-auto">
+                <div className="grid sm:grid-cols-3 gap-2 max-h-52 overflow-y-auto">
                   {tvChannels.map((ch, idx) => {
                     const checked = selectedChannels.some((s) => s.name === ch.name);
                     return (
@@ -538,26 +514,28 @@ export function AdminPostsSection() {
                             checked ? prev.filter((x) => x.name !== ch.name) : [...prev, ch]
                           )
                         }
-                        className={`flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-xs font-bold cursor-pointer ${
-                          checked ? 'border-dark bg-primary text-dark' : 'border-dark/20 bg-white text-slate-900'
+                        className={`flex items-center justify-between gap-2 p-2 rounded-lg border text-left text-xs font-medium cursor-pointer ${
+                          checked
+                            ? 'border-blue-500 bg-blue-50 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
+                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200'
                         }`}
                       >
                         <span className="truncate">{ch.name}</span>
-                        {checked ? <Check className="h-3.5 w-3.5 shrink-0" /> : null}
+                        {checked ? <Check className="h-3.5 w-3.5 text-blue-600 shrink-0" /> : null}
                       </button>
                     );
                   })}
                 </div>
                 <SacButton type="button" size="sm" variant="secondary" onClick={applySelectedChannelsToPost}>
-                  Importar {selectedChannels.length > 0 ? selectedChannels.length : Math.min(12, tvChannels.length)} canales al post
+                  Importar {selectedChannels.length > 0 ? selectedChannels.length : Math.min(12, tvChannels.length)} canales
                 </SacButton>
               </div>
             ) : null}
           </div>
         ) : null}
 
-        {/* Formulario de Publicación */}
-        <form onSubmit={handleCreatePost} className="space-y-3">
+        {/* Post Form */}
+        <form onSubmit={handleCreatePost} className="space-y-3.5">
           <div className="grid sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2">
               <SacInput
@@ -569,11 +547,13 @@ export function AdminPostsSection() {
             </div>
 
             <label className="block space-y-1.5">
-              <span className="block text-xs font-black text-dark/90">Subtipo / Categoría</span>
+              <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                Subtipo
+              </span>
               <select
                 value={subType}
                 onChange={(e) => setSubType(e.target.value)}
-                className="w-full rounded-2xl border-2 border-dark/70 bg-white px-4 py-2.5 text-sm font-bold text-slate-900"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-900 dark:text-slate-100"
               >
                 {topic === 'STREAMING' ? (
                   <>
@@ -596,7 +576,7 @@ export function AdminPostsSection() {
                   </>
                 ) : (
                   <>
-                    <option value="FOOTBALL_POST">Publicación Estilo Facebook</option>
+                    <option value="FOOTBALL_POST">Publicación Normal</option>
                     <option value="NEWS">Noticia Futbolera</option>
                   </>
                 )}
@@ -605,12 +585,14 @@ export function AdminPostsSection() {
           </div>
 
           <label className="block space-y-1.5">
-            <span className="block text-xs font-black text-dark/90">Contenido / Sinopsis / Detalle</span>
+            <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Contenido / Sinopsis
+            </span>
             <textarea
-              rows={4}
+              rows={3}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full rounded-2xl border-2 border-dark/70 bg-white px-4 py-3 text-sm font-semibold text-slate-900"
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               required
             />
           </label>
@@ -624,21 +606,21 @@ export function AdminPostsSection() {
 
           <div className="flex flex-wrap items-center gap-4">
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUploadImage} />
-            <SacButton type="button" size="sm" variant="glass" onClick={() => fileRef.current?.click()}>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 cursor-pointer"
+            >
               <ImageIcon className="h-4 w-4" /> Subir Imagen ({images.length})
-            </SacButton>
+            </button>
 
-            <label className="flex items-center gap-1.5 text-xs font-black text-dark cursor-pointer">
-              <input type="checkbox" checked={isPinned} onChange={(e) => setIsPinned(e.target.checked)} />
-              Fijar arriba
+            <label className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+              <input type="checkbox" checked={isPinned} onChange={(e) => setIsPinned(e.target.checked)} className="rounded accent-blue-600" />
+              <span>Fijar arriba</span>
             </label>
-            <label className="flex items-center gap-1.5 text-xs font-black text-dark cursor-pointer">
-              <input
-                type="checkbox"
-                checked={allowComments}
-                onChange={(e) => setAllowComments(e.target.checked)}
-              />
-              Permitir comentarios
+            <label className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+              <input type="checkbox" checked={allowComments} onChange={(e) => setAllowComments(e.target.checked)} className="rounded accent-blue-600" />
+              <span>Permitir comentarios</span>
             </label>
           </div>
 
@@ -649,51 +631,66 @@ export function AdminPostsSection() {
                   key={im}
                   src={resolveMediaUrl(im)!}
                   alt="Preview"
-                  className="h-20 w-20 rounded-2xl border-2 border-dark object-cover"
+                  className="h-16 w-16 rounded-xl border border-slate-200 object-cover"
                 />
               ))}
             </div>
           ) : null}
 
-          <SacButton type="submit" variant="secondary" disabled={saving}>
-            {saving ? 'Publicando...' : 'Publicar Aviso Ahora'}
-          </SacButton>
+          <div className="flex justify-end pt-1">
+            <SacButton type="submit" variant="primary" disabled={saving}>
+              {saving ? 'Publicando...' : 'Publicar Aviso'}
+            </SacButton>
+          </div>
         </form>
       </GlassCard>
 
-      {/* Moderación de publicaciones */}
-      <GlassCard className="space-y-3">
-        <h3 className="text-lg font-black text-dark">Moderación de Publicaciones ({posts.length})</h3>
-        <div className="space-y-2 max-h-96 overflow-y-auto">
+      {/* Moderation List */}
+      <GlassCard className="p-5 space-y-3.5">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+          Moderación de Publicaciones ({posts.length})
+        </h3>
+        <div className="space-y-2 max-h-80 overflow-y-auto">
           {posts.map((p) => (
             <div
               key={p.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dark/25 bg-white/85 p-3"
+              className="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <SacBadge variant={p.status === 'APPROVED' ? 'primary' : 'dark'}>{p.status}</SacBadge>
-                  <SacBadge variant="outline">{p.topic}</SacBadge>
-                  {p.isPinned ? <SacBadge variant="secondary">FIJADO</SacBadge> : null}
+                  <SacBadge variant={p.status === 'APPROVED' ? 'primary' : 'outline'}>{p.status}</SacBadge>
+                  <span className="text-[11px] font-bold text-slate-400">{p.topic}</span>
+                  {p.isPinned ? <span className="text-[10px] font-bold text-blue-600">FIJADO</span> : null}
                 </div>
-                <div className="font-black text-sm text-slate-900 truncate mt-1">{p.title}</div>
+                <div className="font-semibold text-xs text-slate-900 dark:text-slate-100 truncate mt-1">
+                  {p.title}
+                </div>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                <SacButton size="sm" variant="glass" onClick={() => void togglePostPin(p)} title="Fijar/Soltar">
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => void togglePostPin(p)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 cursor-pointer"
+                  title="Fijar/Soltar"
+                >
                   <Pin className="h-3.5 w-3.5" />
-                </SacButton>
-                <SacButton
-                  size="sm"
-                  variant="glass"
+                </button>
+                <button
+                  type="button"
                   onClick={() => void togglePostStatus(p)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer"
                   title={p.status === 'APPROVED' ? 'Ocultar' : 'Aprobar'}
                 >
                   {p.status === 'APPROVED' ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                </SacButton>
-                <SacButton size="sm" variant="danger" onClick={() => void deletePost(p.id)}>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void deletePost(p.id)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 cursor-pointer"
+                >
                   <Trash2 className="h-3.5 w-3.5" />
-                </SacButton>
+                </button>
               </div>
             </div>
           ))}
